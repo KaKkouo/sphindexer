@@ -33,7 +33,7 @@ structure of the data for genindex.html
 
 variables
 
-- term: KanaText OBJect. it had better to be 'ktobj' vaiable name.
+- term: a Text object.
 - rawword: a term.
 - rawtext: ex. 'term', 'term1; term2' or 'term1; term2; term3'
 - rawsouce: means Element.rawsource.
