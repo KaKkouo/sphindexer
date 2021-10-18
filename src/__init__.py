@@ -9,7 +9,7 @@ A Sphinx Indexer.
 __copyright__ = 'Copyright (C) 2021 @koKekkoh/Qiita'
 __license__ = 'BSD 2-Clause License'
 __author__  = '@koKekkoh'
-__version__ = '0.1.0.dev1' # 2021-10-19
+__version__ = '0.1.0.dev2' # 2021-10-19
 __url__     = 'https://github.com/KaKkouo/sphindexer'
 
 import re, pathlib
@@ -33,341 +33,14 @@ logger = logging.getLogger(__name__)
 
 #------------------------------------------------------------
 
-_chop = re.compile(r'^\\')
-
-_dflt_separator = r'\|'
-_dflt_option_marker = r'\^'
-
-def parser_for_kana_text(separator, option_marker):
-    """「かな|単語^オプション」を取り出す正規表現を作る.
-
-    :param separator: 「かな」と「単語」を分ける文字の指定.
-    :type separator: str
-    :param option_marker: 「^オプション」の開始文字の指定.
-    :type option_marker: str
-    :return: 「かな|単語^オプション」を取り出す正規表現.
-    :rtype: 正規表現.
-
-    doctest::
-
-       >>> parser_for_kana_text(r'\|', r'\^')
-       re.compile('([ \\u3000]*)((.*?)\\\\|)*([^\\\\^]*)((\\\\^)([0-9a-z]*)?)?')
-    """
-
-    ahead = r'([ 　]*)'
-    kana_parts = (r'((.*?)', r')*')
-    word_parts = (r'([^', r']*)')
-    mark_parts = (r'((', r')([0-9a-z]*)?)?')
-
-    re_kana = kana_parts[0] + separator + kana_parts[1]
-    re_word = word_parts[0] + option_marker + word_parts[1]
-    re_mark = mark_parts[0] + option_marker + mark_parts[1]
-
-    return re.compile(ahead + re_kana + re_word + re_mark)
-
-#オプションに「a-z」があるか
-_a2z = re.compile(r'[a-z]')
-
-#「かな|単語^オプション」のオプションの変換用
-_s2i_each_together = {
-    'a': 1, 'b': 2, 'c': 3, 'd': 4, 'e': 5,
-    'f': 6, 'g': 7, 'h': 8, 'i': 9
-    }
-
-_s2i_step_by_step = {
-    'q': 1, 'r': 2, 's': 3, 't': 4, 'u': 5,
-    'v': 6, 'w': 7, 'x': 8, 'y': 9
-    }
-
-def make_html_with_ruby(word: str, kana: str) -> str:
-    """ルビ表示用の文字列を作成
-
-    :param word: 単語
-    :type word: str
-    :param kana: かな
-    :type kana: str
-    :param purpose: 表示目的. 現状は 'html' のみ.
-    :type purpose: str
-    :return: 表示用の文字列
-    :rtype: str
-
-    doctest::
-
-        >>> make_html_with_ruby("単語","たんご")
-        '<ruby><rb>単語</rb><rp>（</rp><rt>たんご</rt><rp>）</rp></ruby>'
-    """
-
-    rb = f'<rb>{word}</rb>' #単語
-    rt = f'<rt>{kana}</rt>' #かな
-    rp = ('<rp>（</rp>', '<rp>）</rp>')
-
-    return f'<ruby>{rb}{rp[0]}{rt}{rp[1]}</ruby>'
-
-def make_specific_by_parsing_option(word, kana, option):
-    rtn, opt, t_s, t_end, r_s, r_end = [], list(option), 0, 0, 0, 0
-    for o in opt:
-        if not word[t_s:] or not kana[r_s:]: #文字がない
-            break
-        elif o in _s2i_each_together: #ルビとしては使用しない
-            t_end = t_s + _s2i_each_together[o]
-            r_end = r_s + _s2i_each_together[o]
-            rtn.append((False,word[t_s:t_end]))
-        elif o in _s2i_step_by_step: #ルビとしては使用しない
-            t_end = t_s + 1
-            r_end = r_s + _s2i_step_by_step[o]
-            rtn.append((False,word[t_s:t_end]))
-        elif _a2z.match(o): #上記以外の文字は無視する
-            continue
-        elif o == '0': #'0'の時はかなを消費せずに、１文字処理する
-            t_end = t_s + 1
-            rtn.append((False,word[t_s:t_end]))
-        else: #ルビとして表示する
-            t_end = t_s + 1
-            r_end = r_s + int(o)
-            rtn.append((True, (word[t_s:t_end], kana[r_s:r_end])))
-
-        #次のループに入る前に位置情報を更新
-        t_s, r_s = t_end, r_end
-
-    if word[t_end:]: #オプションが尽きた
-            rtn.append((False,word[t_end:]))
-
-    return rtn
-
-class KanaText(nodes.Node):
-    """かな文字を扱うTextクラス
-
-    - Jinja2のstring判定ではFalseとなるように、reprunicode(str)は継承しない.
-    - __str__はText.astext()と同じ挙動としてashier()を使う.
-    - KanaText.astext()は簡易IDとして扱う.
-    """
-
-    children = () #これでTextクラスと同じ扱いになる.
-
-    def __init__(self, rawword, separator=_dflt_separator, option_marker=_dflt_option_marker):
-        """
-        doctest:
-
-            >>> kana = KanaText('はなこ|はな子^b1')
-            >>> kana
-            <KanaText: len=2 ruby='specific' option='b1' <#text: 'はなこ|はな子'>>
-        """
-
-        self._rawword = rawword
-        self._delimiter = _chop.sub('', separator)
-        self._separator = separator
-        self._option_marker = option_marker
-
-        self.whatiam = 'term' #in('classifier', 'term', 'subterm')
-
-        parser = parser_for_kana_text(separator, option_marker)
-        hier, kana, ruby, option = self._parse_text(rawword.strip(), parser)
-
-        self._properties = {'hier': hier, 'kana': kana, 'ruby': ruby, 'option': option,
-                            'null': not hier, 'separator':  self._delimiter, }
-
-    def __len__(self):
-        if not self['kana'] is None: return 2
-        if not self['hier'] is None: return 1 #0.22.0: 'is None'を削除しても動作するように調整.
-        return 0
-
-    def __getitem__(self, key):
-        if isinstance(key, str):
-            return self._properties[key]
-        elif isinstance(key, int):
-            if key == 0: return self._properties['hier']
-            if key == 1: return self._properties['kana']
-            raise KeyError(key)
-        else:
-            raise TypeError(key)
-
-    def __setitem__(self, key, value):
-        """必要なものに限定する."""
-        if isinstance(key, str):
-            if key == 'whatiam':
-                self.whatiam = value
-            elif key in ('ruby', 'option'):
-                self._properties[key] = value
-            else:
-                raise KeyError(key)
-        elif isinstance(key, int):
-            if key == 1:
-                self._properties['kana'] = value
-            else:
-                raise KeyError(key)
-        else:
-            raise KeyError(key)
-
-    def __eq__(self, other):
-        """unittest用"""
-        return self.astext() == other
-
-    def __str__(self):
-        """jinja2用"""
-        return self.ashier()
-
-    def __iter__(self):
-        """jinja2用"""
-        self._iterator = self.asruby()
-        self._iter_counter = -1
-        return self
-
-    def __next__(self):
-        self._iter_counter += 1
-        try:
-            return self._iterator[self._iter_counter]
-        except IndexError:
-            raise StopIteration
-
-    def __repr__(self):
-        return self.entity_of_repr()
-
-    def entity_of_repr(self):
-        """
-        doctest:
-            >>> kana = KanaText('はなこ|はな子^b1')
-            >>> kana
-            <KanaText: len=2 ruby='specific' option='b1' <#text: 'はなこ|はな子'>>
-        """
-        name = self.__class__.__name__
-        rb, op = self['ruby'], self['option']
-        hier, kana = self[0], self[1]
-        if kana:
-            prop = f"<{name}: len={len(self)} "
-            if len(rb) > 0: prop += f"ruby='{rb}' "
-            if len(op) > 0: prop += f"option='{op}' "
-            prop += f"<#text: '{kana}|{hier}'>>"
-
-            return prop
-        elif hier:
-            return f"<{name}: len={len(self)} <#text: '{hier}'>>"
-        elif self._rawword:
-            return f"<{name}: <#rawword: '{self._rawword}'>>"
-        else:
-            return f"<{name}: <#empty>>"
-
-    def _parse_text(self, text, parser):
-        """
-        doctest:
-
-            >>> kana = KanaText('たなかひさみつ|田中ひさみつ^12d')
-            >>> kana
-            <KanaText: len=2 ruby='specific' option='12d' <#text: 'たなかひさみつ|田中ひさみつ'>>
-        """
-        match = parser.match(text)
-
-        if not match:
-            raise ValueError(self._rawword)
-
-        _, _, kana, hier, _, marker, opt = match.groups()
-
-        # display mode of ruby
-        if not kana:   ruby = '' #off
-        elif   opt:    ruby = 'specific'
-        elif   marker: ruby = 'on'
-        else:          ruby = '' #off
-
-        if not opt: opt = ''
-
-        return hier, kana, ruby, opt
-
-    def astext(self):
-        if self[1]: return self[1] + self._delimiter + self[0]
-        if self[0]: return self[0]
-        return ''
-
-    def askana(self):
-        """
-        doctest:
-            >>> kana = KanaText('たなかはなこ|田中はな子^12b1')
-            >>> kana.askana()
-            'たなかはなこ'
-        """
-        if len(self) < 1:
-            raise ValueError(self._rawword, len(self), self[0], self[1], self)
-
-        if len(self) < 2:
-            return ''
-        else:
-            return self[1]
-
-    def ashier(self):
-        """
-        doctest:
-            >>> kana = KanaText('たなかはなこ|田中はな子^12b1')
-            >>> kana.ashier()
-            '田中はな子'
-        """
-        if len(self) < 1:
-            raise ValueError(self._rawword, len(self), self[0], self[1], self)
-
-        return self[0]
-
-    def asruby(self):
-        """
-        doctest:
-            >>> kana = KanaText('たなかはなこ|田中はな子^12b1')
-            >>> kana.asruby()
-            [(True, ('田', 'た')), (True, ('中', 'なか')), (False, 'はな'), (True, ('子', 'こ'))]
-            >>> kana = KanaText('たなかはなこ|田中はな子^')
-            >>> kana.asruby()
-            [(True, ('田中はな子', 'たなかはなこ'))]
-            >>> kana = KanaText('たなかはなこ|田中はな子')
-            >>> kana.asruby()
-            [(False, '田中はな子')]
-        """
-
-        if self['null']: return None
-
-        ruby, option = self['ruby'], self['option']
-
-        if len(self) < 1:
-            raw = self.rawsource
-            name = self.__class__.__name__
-            raise ValueError(f"{name}('{raw}')", self.children)
-        elif len(self) == 1:
-            hier = self[0]
-            if hier: data = [(False, hier)]
-            else:    data = None
-        elif not ruby:
-            hier = self[0]
-            data = [(False, hier),]
-        elif ruby == 'specific': #細かくルビの表示/非表示を指定する
-            #アレコレがんばる
-            hier, kana = self[0], self[1]
-            data = make_specific_by_parsing_option(hier, kana, option)
-        elif ruby == 'on': #ルビを付ける。文字の割当位置は気にしない。
-            hier, kana = self[0], self[1]
-            data = [(True, (hier, kana))]
-        else:
-            #ここは通らないはずだけど、念の為
-            raise ValueError(repr(self))
-
-        return data
-
-    def ashtml(self):
-        """
-        doctest:
-            >>> kana = KanaText('はなこ|はな子^b1')
-            >>> kana.ashtml()
-            'はな<ruby><rb>子</rb><rp>（</rp><rt>こ</rt><rp>）</rp></ruby>'
-        """
-
-        html = ""
-        for isruby, value in self.asruby():
-            if isruby:
-                html += make_html_with_ruby(value[0], value[1])
-            else:
-                html += value
-        return html
 
 #------------------------------------------------------------
 
 _each_words = re.compile(r' *; +')
 
-class KanaTextUnit(nodes.Element):
+class TextUnit(nodes.Element):
 
-    _number_of_terms = { 'single': 2, 'pair': 2, 'triple': 3, 'see': 2, 'seealso': 2, 'list': 99}
+    _number_of_terms = { 'single': 2, 'pair': 2, 'triple': 3, 'see': 2, 'seealso': 2, }
 
     def __init__(self, rawtext, entry_type='single', file_name=None, target=None, main='', index_key=''):
 
@@ -382,17 +55,6 @@ class KanaTextUnit(nodes.Element):
 
     def __repr__(self):
         """
-        doctest:
-
-            >>> ktext = KanaTextUnit('壱壱; 弐弐')
-            >>> ktext
-            <KanaTextUnit: entry_type='single' <KanaText: len=1 <#text: '壱壱'>><KanaText: len=1 <#text: '弐弐'>>>
-            >>> ktext = KanaTextUnit('ああ|壱壱^')
-            >>> ktext
-            <KanaTextUnit: entry_type='single' <KanaText: len=2 ruby='on' <#text: 'ああ|壱壱'>>>
-            >>> ktext = KanaTextUnit('あ|壱^1')
-            >>> ktext
-            <KanaTextUnit: entry_type='single' <KanaText: len=2 ruby='specific' option='1' <#text: 'あ|壱'>>>
         """
 
         name = self.__class__.__name__
@@ -471,58 +133,24 @@ class KanaTextUnit(nodes.Element):
 
     def askana(self, concat=(', ', 3)):
         """
-        doctest:
-            >>> ktext = KanaTextUnit('壱壱')
-            >>> ktext.askana()
-            ''
-            >>> ktext = KanaTextUnit('ああ|壱壱^11')
-            >>> ktext.askana()
-            'ああ'
-            >>> ktext = KanaTextUnit('ああ|壱壱^11; いい|弐弐; うう|参参^11')
-            >>> ktext.askana()
-            'ああ, いい, うう'
         """
         kana = concat[0].join(k.askana() for k in self)
         return kana
 
     def ashier(self, concat=(', ', 3)):
         """
-        doctest:
-            >>> ktext = KanaTextUnit('壱壱')
-            >>> ktext.ashier()
-            '壱壱'
-            >>> ktext = KanaTextUnit('ああ|壱壱^11')
-            >>> ktext.ashier()
-            '壱壱'
-            >>> ktext = KanaTextUnit('ああ|壱壱^11; いい|弐弐; うう|参参^11')
-            >>> ktext.ashier()
-            '壱壱, 弐弐, 参参'
         """
         word = concat[0].join(k.ashier() for k in self)
         return word
 
     def astext(self, concat=('; ', 3)):
         """
-        doctest:
-            >>> ktext = KanaTextUnit('壱壱')
-            >>> ktext.astext()
-            '壱壱'
-            >>> ktext = KanaTextUnit('ああ|壱壱^11')
-            >>> ktext.astext()
-            'ああ|壱壱'
-            >>> ktext = KanaTextUnit('ああ|壱壱^11; いい|弐弐; うう|参参^11')
-            >>> ktext.astext()
-            'ああ|壱壱; いい|弐弐; うう|参参'
         """
         text = concat[0].join(k.astext() for k in self)
         return text
 
     def asruby(self):
         """
-        doctest:
-            >>> kanatext = KanaTextUnit('ああ|壱壱; いい|弐弐^; うう|参参')
-            >>> kanatext.asruby()
-            [[(False, '壱壱')], [(True, ('弐弐', 'いい'))], [(False, '参参')]]
         """
         rubys = []
         for child in self:
@@ -535,128 +163,18 @@ class KanaTextUnit(nodes.Element):
 
 #------------------------------------------------------------
 
-def KanaRole(name, rawtext, text, lineno, inliner, options={}, content=[]):
-    """「:kana:`かな|単語`」によるルビ表示
-
-    :param name: ロール名. kana
-    :type name: str
-    :param rawtext: ロール名を含む全体. ex. \:kana\:\`たなかはなこ|田中はな子^\`
-    :type rawtext: str
-    :param text: ロール内データ. ex たなかはなこ|田中はな子^
-    :type text: str
-    :param inliner: Inliner object
-    :type inliner: docutils.parsers.rst.states.Inliner
-    :return: 作成したノード
-    :rtype: [node], [システムメッセージ]
-    """
-    node = KanaText(text)
-    return [node], []
-
-def visit_kana(self, node):
-    """KanaTextクラスで作成されたオブジェクトの表示処理"""
-    self.body.append(node.ashtml())
-
-def depart_kana(self, node):
-    """KanaTextクラスで作成されたオブジェクトの表示処理"""
-    pass
 
 #------------------------------------------------------------
 
-class KanaHTML5Translator(html5.HTML5Translator):
-
-    def visit_term(self, node: Element) -> None:
-        """
-        目的の文字列をKanaTextクラスにするための対応.
-        後は、add_nodeで割り当てたメソッドが行う.
-        """
-
-        try:
-            term = KanaText(node[0].astext())
-        except TypeError as e:
-            pass
-        else:
-            #なくても動作しているのだけど、念の為
-            term.parent = node[0].parent
-            term.document = node[0].document
-            term.source = node[0].source
-            term.line = node[0].line
-            term.children = node[0].children
-            #ここまでが念の為
-
-            node[0] = term
-
-        self.body.append(self.starttag(node,'dt',''))
-
 #------------------------------------------------------------
-
-_first_char_small = {
-    'あ': 'あ', 'い': 'あ', 'う': 'あ', 'え': 'あ', 'お': 'あ',
-    'ア': 'あ', 'イ': 'あ', 'ウ': 'あ', 'エ': 'あ', 'オ': 'あ', 
-    'か': 'か', 'き': 'か', 'く': 'か', 'け': 'か', 'こ': 'か',
-    'カ': 'か', 'キ': 'か', 'ク': 'か', 'ケ': 'か', 'コ': 'か',
-    'が': 'か', 'ぎ': 'か', 'ぐ': 'か', 'げ': 'か', 'ご': 'か',
-    'ガ': 'か', 'ギ': 'か', 'グ': 'か', 'ゲ': 'か', 'ゴ': 'か', 
-    'さ': 'さ', 'し': 'さ', 'す': 'さ', 'せ': 'さ', 'そ': 'さ',
-    'サ': 'さ', 'シ': 'さ', 'ス': 'さ', 'セ': 'さ', 'ソ': 'さ',
-    'ざ': 'さ', 'じ': 'さ', 'ず': 'さ', 'ぜ': 'さ', 'ぞ': 'さ',
-    'ザ': 'さ', 'ジ': 'さ', 'ズ': 'さ', 'ゼ': 'さ', 'ゾ': 'さ', 
-    'た': 'た', 'ち': 'た', 'つ': 'た', 'て': 'た', 'と': 'た',
-    'タ': 'た', 'チ': 'た', 'ツ': 'た', 'テ': 'た', 'ト': 'た',
-    'だ': 'た', 'ぢ': 'た', 'づ': 'た', 'で': 'た', 'ど': 'た',
-    'ダ': 'た', 'ヂ': 'た', 'ヅ': 'た', 'デ': 'た', 'ド': 'た', 
-    'な': 'な', 'に': 'な', 'ぬ': 'な', 'ね': 'な', 'の': 'な',
-    'ナ': 'な', 'ニ': 'な', 'ヌ': 'な', 'ネ': 'な', 'ノ': 'な', 
-    'は': 'は', 'ひ': 'は', 'ふ': 'は', 'へ': 'は', 'ほ': 'は',
-    'ハ': 'は', 'ヒ': 'は', 'フ': 'は', 'ヘ': 'は', 'ホ': 'は',
-    'ば': 'は', 'び': 'は', 'ぶ': 'は', 'べ': 'は', 'ぼ': 'は',
-    'バ': 'は', 'ビ': 'は', 'ブ': 'は', 'ベ': 'は', 'ボ': 'は',
-    'ぱ': 'は', 'ぴ': 'は', 'ぷ': 'は', 'ぺ': 'は', 'ぽ': 'は',
-    'パ': 'は', 'ピ': 'は', 'プ': 'は', 'ペ': 'は', 'ポ': 'は', 
-    'ま': 'ま', 'み': 'ま', 'む': 'ま', 'め': 'ま', 'も': 'ま',
-    'マ': 'ま', 'ミ': 'ま', 'ム': 'ま', 'メ': 'ま', 'モ': 'ま', 
-    'や': 'や', 'ゆ': 'や', 'よ': 'や', 'ヤ': 'や', 'ユ': 'や', 'ヨ': 'や',
-    'ゃ': 'や', 'ゅ': 'や', 'ょ': 'や', 'ャ': 'や', 'ュ': 'や', 'ョ': 'や', 
-    'ら': 'ら', 'り': 'ら', 'る': 'ら', 'れ': 'ら', 'ろ': 'ら',
-    'ラ': 'ら', 'リ': 'ら', 'ル': 'ら', 'レ': 'ら', 'ロ': 'ら', 
-    'わ': 'わ', 'を': 'わ', 'ワ': 'わ', 'ヲ': 'わ', 'ん': 'わ', 'ン': 'わ' }
-
-_first_char_large = {
-    'あ': 'あ', 'い': 'い', 'う': 'う', 'え': 'え', 'お': 'お',
-    'ア': 'あ', 'イ': 'い', 'ウ': 'う', 'エ': 'え', 'オ': 'お', 
-    'か': 'か', 'き': 'き', 'く': 'く', 'け': 'け', 'こ': 'こ',
-    'カ': 'か', 'キ': 'き', 'ク': 'く', 'ケ': 'け', 'コ': 'こ',
-    'が': 'か', 'ぎ': 'き', 'ぐ': 'く', 'げ': 'け', 'ご': 'こ',
-    'さ': 'さ', 'し': 'し', 'す': 'す', 'せ': 'せ', 'そ': 'そ',
-    'ガ': 'か', 'ギ': 'き', 'グ': 'く', 'ゲ': 'け', 'ゴ': 'こ', 
-    'サ': 'さ', 'シ': 'し', 'ス': 'す', 'セ': 'せ', 'ソ': 'そ',
-    'ざ': 'さ', 'じ': 'し', 'ず': 'す', 'ぜ': 'せ', 'ぞ': 'そ',
-    'ザ': 'さ', 'ジ': 'し', 'ズ': 'す', 'ゼ': 'せ', 'ゾ': 'そ', 
-    'た': 'た', 'ち': 'ち', 'つ': 'つ', 'て': 'て', 'と': 'と',
-    'タ': 'た', 'チ': 'ち', 'ツ': 'つ', 'テ': 'て', 'ト': 'と',
-    'だ': 'た', 'ぢ': 'ち', 'づ': 'つ', 'で': 'て', 'ど': 'と',
-    'ダ': 'た', 'ヂ': 'ち', 'ヅ': 'つ', 'デ': 'て', 'ド': 'と', 
-    'な': 'な', 'に': 'に', 'ぬ': 'ぬ', 'ね': 'ね', 'の': 'の',
-    'ナ': 'な', 'ニ': 'に', 'ヌ': 'ぬ', 'ネ': 'ね', 'ノ': 'の', 
-    'は': 'は', 'ひ': 'ひ', 'ふ': 'ふ', 'へ': 'へ', 'ほ': 'ほ',
-    'ハ': 'は', 'ヒ': 'ひ', 'フ': 'ふ', 'ヘ': 'へ', 'ホ': 'ほ',
-    'ば': 'は', 'び': 'ひ', 'ぶ': 'ふ', 'べ': 'へ', 'ぼ': 'ほ',
-    'バ': 'は', 'ビ': 'ひ', 'ブ': 'ふ', 'ベ': 'へ', 'ボ': 'ほ',
-    'ま': 'ま', 'み': 'み', 'む': 'む', 'め': 'め', 'も': 'も',
-    'ぱ': 'は', 'ぴ': 'ひ', 'ぷ': 'ふ', 'ぺ': 'へ', 'ぽ': 'ほ',
-    'パ': 'は', 'ピ': 'ひ', 'プ': 'ふ', 'ペ': 'へ', 'ポ': 'ほ', 
-    'マ': 'ま', 'ミ': 'み', 'ム': 'む', 'メ': 'め', 'モ': 'も', 
-    'や': 'や', 'ゆ': 'ゆ', 'よ': 'よ', 'ヤ': 'や', 'ユ': 'ゆ', 'ヨ': 'よ',
-    'ゃ': 'や', 'ゅ': 'ゆ', 'ょ': 'よ', 'ャ': 'や', 'ュ': 'ゆ', 'ョ': 'よ', 
-    'ら': 'ら', 'り': 'り', 'る': 'る', 'れ': 'れ', 'ろ': 'ろ',
-    'ラ': 'ら', 'リ': 'り', 'ル': 'る', 'レ': 'れ', 'ロ': 'ろ', 
-    'わ': 'わ', 'を': 'を', 'ん': 'ん', 'ワ': 'わ', 'ヲ': 'を', 'ン': 'ん' }
 
 #1-5: IndexRack.put_in_kana_catalogでの優先順.
 #3,5: 同一subterm内でのリンクの表示順.
 #8,9: 同一term内でのsubtermの表示順.
 _emphasis2char = {
-    '_cnfpy_': '1', #「conf.py/kana_text_word_list」
-    '_rncmd_': '2', #「~/.sphinx/kana_catalog.py」
+    '_rsvd0_': '0', #reserved
+    '_rsvd1_': '1', #reserved
+    '_rsvd2_': '2', #reserved
     'main':    '3', #glossaryで定義した用語. indexでは「!」が先頭にあるもの.
     '_rsvd4_': '4', #reserved
     '':        '5', #'main', 'see', 'seealso'以外.
@@ -672,32 +190,7 @@ _char2emphasis = {
 }
 
 def make_classifier_from_first_letter(text, config):
-    """
-    先頭の一文字を必要な加工をして分類子に使う.
-    """
-    try:
-        #パラメータに応じて変換テーブルを使い分ける.
-        if 'small' == config.kana_text_indexer_mode:
-            return _first_char_small[text[:1]]
-        elif 'large' == config.kana_text_indexer_mode:
-            return _first_char_large[text[:1]]
-        else:
-            #想定パラメータ以外なら基本的な処理
-            return text[:1].upper()
-    except KeyError:
-        #変換表になければ基本的な処理
-        return text[:1].upper()
-
-def get_word_list_from_file(config):
-    if not config.kana_text_word_file: return []
-
-    file_name = config.kana_text_word_file
-    file_name = pathlib.Path(file_name).expanduser()
-
-    with open(file_name, 'r') as fd:
-        lines = fd.readlines()
-
-    return lines
+    return text[:1].upper()
 
 class IndexRack(object):
     """
@@ -1042,17 +535,6 @@ class SubTerm(nodes.reprunicode):
         for subterm in self._terms:
             text += subterm.astext() + self._delimiter
         return text[:-len(self._delimiter)]
-    def ashier(self):
-        if self._template and len(self) == 1:
-            return self._template % self._terms[0].ashier()
-
-        if self.change_triple and len(self) == 2:
-            return self[1].ashier() + self._delimiter + self[0].ashier()
-
-        hier = ""
-        for subterm in self._terms:
-            hier += subterm.ashier() + self._delimiter
-        return hier[:-len(self._delimiter)]
 
 class IndexUnit(object):
 
@@ -1087,12 +569,6 @@ class IndexUnit(object):
 
     def __repr__(self):
         """
-        >>> iu = IndexUnit('', '', '', '5', 'doc1', 'id-1', '分類子', KanaText)
-        >>> iu
-        <IndexUnit: main='5' file_name='doc1' target='id-1' <KanaText: <#empty>><KanaText: <#empty>>>
-        >>> iu = IndexUnit('壱', '弐', '', '8', '', '', None, KanaText)
-        >>> iu
-        <IndexUnit: main='8' <KanaText: <#empty>><KanaText: len=1 <#text: '壱'>><SubTerm: len=1 tpl='see %s' <KanaText: len=1 <#text: '弐'>>>>
         """
         name = self.__class__.__name__
         main = self['main']
@@ -1151,23 +627,6 @@ class IndexUnit(object):
 
         return texts
 
-    def askanas(self):
-        kanas = [self[self.TERM].askana()]
-
-        for subterm in self[self.SBTM]._terms:
-            kanas.append(subterm.askana())
-
-        return kanas
-
-    def ashiers(self):
-        """Textなら、astexts()になっている."""
-        terms = [self[self.TERM].ashier()]
-
-        for subterm in self[self.SBTM]._terms:
-            terms.append(subterm.ashier())
-
-        return terms
-
 #------------------------------------------------------------
 
 class _StandaloneHTMLBuilder(builders.StandaloneHTMLBuilder):
@@ -1214,48 +673,12 @@ class _StandaloneHTMLBuilder(builders.StandaloneHTMLBuilder):
 class KanaHTMLBuilder(_StandaloneHTMLBuilder):
     """索引ページの日本語対応"""
 
-    name = 'kana'
+    name = 'idxr'
 
     def create_genindex(self) -> None: #KaKkou
         """索引の作成"""
         #自前のIndexerを使う
         return IndexRack(self).create_genindex()
-
-#------------------------------------------------------------
-
-class _IndexRole(IndexRole):
-    """
-    変更点は次の通り
-    - 変更前）text = nodes.Text(title, title)
-    - 変更後）text = self.create_textnode(title, title)
-    """
-    def create_textnode(sefl, text, rawtext):
-        return Text(text, rawtext)
-
-    def run(self) -> Tuple[List[Node], List[system_message]]:
-        target_id = 'index-%s' % self.env.new_serialno('index')
-        if self.has_explicit_title:
-            # if an explicit target is given, process it as a full entry
-            title = self.title
-            entries = process_index_entry(self.target, target_id)
-        else:
-            # otherwise we just create a single entry
-            if self.target.startswith('!'):
-                title = self.title[1:]
-                entries = [('single', self.target[1:], target_id, 'main', None)]
-            else:
-                title = self.title
-                entries = [('single', self.target, target_id, '', None)]
-
-        index = addnodes.index(entries=entries)
-        target = nodes.target('', '', ids=[target_id])
-        text = self.create_textnode(title, title) #KaKkou
-        self.set_source_info(index)
-        return [index, target, text], []
-
-class KanaIndexRole(_IndexRole):
-    def create_textnode(self, text, rawtext):
-        return KanaText(text)
 
 #------------------------------------------------------------
 
@@ -1267,29 +690,12 @@ def setup(app) -> Dict[str, Any]:
     :return: 本Sphinx拡張の基本情報など
     :rtype: Dict[name: value]
     """
-    #「:index:`かな|単語<かな|単語>`」が使用可能になる
-    app.add_role('index', KanaIndexRole(), True)
-
-    #「:kana:`かな|単語^11`」が使用可能になる
-    app.add_role('kana', KanaRole)
-
-    #glossaryディレクティブ、kanaロールの表示用
-    app.add_node(KanaText, html=(visit_kana, depart_kana))
-    app.add_node(KanaTextUnit, html=(visit_kana, depart_kana))
-    #索引の表示はKanaHTMLBuilderで行う
-
     #HTML出力
     app.add_builder(KanaHTMLBuilder)
-    app.set_translator('kana', KanaHTML5Translator)
+    app.set_translator('idxr', KanaHTML5Translator)
 
     #設定の登録
-    app.add_config_value('kana_text_separator', r'\|', 'env') 
-    app.add_config_value('kana_text_option_marker', r'\^', 'env') 
-    app.add_config_value('kana_text_word_file', '', 'env') 
-    app.add_config_value('kana_text_word_list', (), 'env') 
-    app.add_config_value('kana_text_indexer_mode', 'small', 'env') 
-    app.add_config_value('html_kana_text_on_genindex', False, 'html') 
-    app.add_config_value('html_change_triple', False, 'html') 
+    pass
 
     #バージョンの最後は作成日（MMDDYY）
     return {
