@@ -1,6 +1,6 @@
 import unittest
 
-from . import testcase01, testcase02    
+from . import testcase01, testcase02
 
 def suites():
     suites = unittest.TestSuite()
