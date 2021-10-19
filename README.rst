@@ -1,12 +1,8 @@
-Sphindexer
-==========
 A sphinx extension to replace the IndexEntries class.
 
-naming
-------
-Sphinx + Indexer
+- Sphindexer = Sphinx + Indexer
 
-goal
-----
+THE GLOAL
+---------
 - It's to become the IndexEntries class.
 - It has the extention for kana_text.
