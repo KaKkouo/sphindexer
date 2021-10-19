@@ -9,7 +9,7 @@ A Sphinx Indexer.
 __copyright__ = 'Copyright (C) 2021 @koKekkoh/Qiita'
 __license__ = 'BSD 2-Clause License'
 __author__  = '@koKekkoh'
-__version__ = '0.1.0.dev6' # 2021-10-19
+__version__ = '0.1.0a1' # 2021-10-19
 __url__     = 'https://github.com/KaKkouo/sphindexer'
 
 import re, pathlib
@@ -36,7 +36,7 @@ class Text(nodes.Text):
         self._rawword = rawword
         super().__init__(rawword, rawword)
     def __eq__(self, other):
-        return self.astext() == other.astext()
+        return self.astext() == other
     def __str__(self):
         return self.astext()
 
@@ -219,7 +219,7 @@ class IndexRack(object):
 
         for fn, entries in entries.items():
             for entry_type, value, tid, main, index_key in entries:
-                unit = KanaTextUnit(value, entry_type, fn, tid, main, index_key)
+                unit = TextEntry(value, entry_type, fn, tid, main, index_key)
                 index_units = unit.make_index_units()
                 self.extend(index_units)
 
@@ -233,8 +233,7 @@ class IndexRack(object):
         - 全unitを見て決める更新処理のための情報収集
         """
         #情報収集
-        self.put_in_classifier_catalog(unit['index_key'], unit[self.UNIT_TERM].ashier())
-        self.put_in_kana_catalog(unit[self.UNIT_EMPH], unit.get_children()) #KanaText
+        self.put_in_classifier_catalog(unit['index_key'], unit[self.UNIT_TERM].astext())
 
         #情報収集
         if self._group_entries:
@@ -270,9 +269,6 @@ class IndexRack(object):
     def update_units(self):
         """rackに格納されている全てのunitの更新を行う."""
 
-        #__init__で貯めた情報を追加する.
-        self._kana_catalog.update(self._kana_catalog_pre)
-
         #カタログ情報を使った更新
         for unit in self._rack:
             assert [unit[self.UNIT_TERM]]
@@ -289,13 +285,13 @@ class IndexRack(object):
 
             #［重要］if/elifの判定順
             if ikey:
-                unit[self.UNIT_CLSF] = unit.textclass(ikey)
-            elif term.ashier() in self._classifier_catalog:
-                unit[self.UNIT_CLSF] = unit.textclass(self._classifier_catalog[term.ashier()])
+                unit[self.UNIT_CLSF] = term.textclass(ikey)
+            elif term.astext() in self._classifier_catalog:
+                unit[self.UNIT_CLSF] = term.textclass(self._classifier_catalog[term.astext()])
             else:
                 text = unit[self.UNIT_TERM].astext()
-                char = make_classifier_from_first_letter(text, self.config)
-                unit[self.UNIT_CLSF] = unit.textclass(char)
+                char = make_classifier_from_first_letter(text)
+                unit[self.UNIT_CLSF] = term.textclass(char)
 
             #sortkeyの設定
             #'see', 'seealso'の表示順に手を加える.
@@ -318,15 +314,15 @@ class IndexRack(object):
             (in module bar) 
         """
         i_tm = unit[self.UNIT_TERM]
-        m = self._fixre.match(i_tm.astext()) #astext()とashier()に差異はない.
+        m = self._fixre.match(i_tm.astext())
 
         #_fixreが想定する形で関数名とモジュール名があり、同じ名前の関数が複数ある場合.
         if m and self._function_catalog[m.group(1)] > 1:
             #状況的にsubtermは空のはず.
             assert not unit[self.UNIT_SBTM], f'{self.__class__.__name__}: subterm is not null'
 
-            unit[self.UNIT_TERM] = unit.textclass(m.group(1))
-            obj = unit.textclass(m.group(2))
+            unit[self.UNIT_TERM] = i_tm.textclass(m.group(1))
+            obj = i_tm.textclass(m.group(2))
             unit[self.UNIT_SBTM] = SubTerm()
             unit[self.UNIT_SBTM].append(obj)
         #subの情報が消えるが、このケースに該当する場合はsubにはデータがないはず.
@@ -367,7 +363,7 @@ class IndexRack(object):
                     continue
 
             #see: KanaText.__ne__
-            if len(rtnlist) == 0 or not rtnlist[_clf][0] == i_clf.astext(): #use __eq__
+            if len(rtnlist) == 0 or not rtnlist[_clf][0] == i_clf.astext(): 
                 rtnlist.append((i_clf, []))
 
                 #追加された「(clf, [])」を見るように_clfを更新する. 他はリセット.
@@ -378,7 +374,7 @@ class IndexRack(object):
             r_subterms = r_clsfr[1] #[term, term, ..]
 
             #see: KanaText.__ne__
-            if len(r_subterms) == 0 or not r_subterms[_tm][0] == i_tm: #use __eq__
+            if len(r_subterms) == 0 or not r_subterms[_tm][0] == i_tm.astext(): #use __eq__
                 r_subterms.append((i_tm, [[], [], i_iky]))
                 _tm, _sub = _tm+1, -1
 
@@ -399,7 +395,7 @@ class IndexRack(object):
             #sub(class SubTerm): [], [KanaText], [KanaText, KanaText].
             if len(i_sub) == 0:
                 if r_fn: r_term_links.append((r_main, r_uri))
-            elif len(r_subterms) == 0 or not r_subterms[_sub][0] == i_sub:
+            elif len(r_subterms) == 0 or not r_subterms[_sub][0] == i_sub.astext():
                 if self.config.html_change_triple:
                     i_sub.change_triple = True
                 r_subterms.append((i_sub, []))
@@ -433,7 +429,7 @@ class SubTerm(nodes.reprunicode):
         return rpr
     def __str__(self):
         """Jinja2"""
-        return self.ashier()
+        return self.astext()
     def __eq__(self, other):
         """unittest、IndexRack.generate_genindex_data."""
         return self.astext() == other
@@ -443,7 +439,7 @@ class SubTerm(nodes.reprunicode):
         self._terms.append(subterm)
     def astext(self):
         if self._template and len(self) == 1:
-            return self._template % self._terms[0].ashier()
+            return self._template % self._terms[0].astext()
 
         text = ""
         for subterm in self._terms:
