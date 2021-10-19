@@ -1,6 +1,6 @@
 """
 Sphindexer
-~~~~~====~
+~~~~~~~~~~
 A Sphinx Indexer.
 :copyright: Copyright 2021 by @KoKekkoh/Qiita.
 :license: BSD, see LICENSE for details.
@@ -9,7 +9,7 @@ A Sphinx Indexer.
 __copyright__ = 'Copyright (C) 2021 @koKekkoh/Qiita'
 __license__ = 'BSD 2-Clause License'
 __author__  = '@koKekkoh'
-__version__ = '0.1.0a1' # 2021-10-19
+__version__ = '0.1.0' # 2021-10-19
 __url__     = 'https://github.com/KaKkouo/sphindexer'
 
 import re, pathlib
@@ -396,8 +396,6 @@ class IndexRack(object):
             if len(i_sub) == 0:
                 if r_fn: r_term_links.append((r_main, r_uri))
             elif len(r_subterms) == 0 or not r_subterms[_sub][0] == i_sub.astext():
-                if self.config.html_change_triple:
-                    i_sub.change_triple = True
                 r_subterms.append((i_sub, []))
 
                 _sub = _sub+1
@@ -417,7 +415,6 @@ class SubTerm(nodes.reprunicode):
         self._terms = []
         self._delimiter = ' '
         self._template = template
-        self.change_triple = False
     def set_delimiter(self, delimiter):
         self._delimiter = delimiter
     def __repr__(self):
@@ -592,7 +589,6 @@ def setup(app) -> Dict[str, Any]:
     """
     #HTML出力
     app.add_builder(KanaHTMLBuilder)
-    app.set_translator('idxr', KanaHTML5Translator)
 
     #設定の登録
     pass
