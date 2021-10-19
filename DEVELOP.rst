@@ -45,8 +45,6 @@ methods
 - __eq__: return a string by astext,  to be identified easily, for unittest
 - __str__: return a string by ashier, for jinja2
 
-relations
-
 Text(extend docutil.nodes.Text)
 
 - object.__eq__: used by unittest and IndexRack.generate_genindex_data
