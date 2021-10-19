@@ -199,8 +199,8 @@ class IndexRack(object):
         self.config = builder.config
         self.get_relative_uri = builder.get_relative_uri
 
-    def create_genindex(self, entries=None,
-                     group_entries: bool = True, _fixre: Pattern = re.compile(r'(.*) ([(][^()]*[)])')
+    def create_genindex(self, group_entries: bool = True,
+                       _fixre: Pattern = re.compile(r'(.*) ([(][^()]*[)])')
                      ) -> List[Tuple[str, List[Tuple[str, Any]]]]:
         """IndexEntriesクラス/create_indexメソッドを置き換える."""
 
@@ -335,7 +335,7 @@ class IndexRack(object):
             x[self.UNIT_SBTM].astext(), #subterm
             x[self.UNIT_EMPH],          #emphasis(main)
             x['file_name'], x['target']))
-        #x['file_name'], x['target']は、0.21の動作仕様に合わせるため.
+        #x['file_name'], x['target']について.
         #逆にすると内部的な処理順に依存するため、現状の動作仕様を維持する.
 
     def generate_genindex_data(self):
@@ -376,9 +376,11 @@ class IndexRack(object):
             #see: KanaText.__ne__
             if len(r_subterms) == 0 or not r_subterms[_tm][0] == i_tm.astext(): #use __eq__
                 r_subterms.append((i_tm, [[], [], i_iky]))
+
+                #追加された「(i_tm, [[], [], i_iky])」を見るように_tmを更新する. _subはリセット.
                 _tm, _sub = _tm+1, -1
 
-            r_term = r_subterms[_tm]       #[term, [links, [subterm, subterm, ..], index_key]
+            r_term = r_subterms[_tm]    #[term, [links, [subterm, subterm, ..], index_key]
             r_term_value = r_term[0]    #term_value is KanaText object.
             r_term_links = r_term[1][0] #[(main, uri), (main, uri), ..]
             r_subterms = r_term[1][1]   #[subterm, subterm, ..]
