@@ -9,7 +9,7 @@ A Sphinx Indexer.
 __copyright__ = 'Copyright (C) 2021 @koKekkoh/Qiita'
 __license__ = 'BSD 2-Clause License'
 __author__  = '@koKekkoh'
-__version__ = '0.1.0.4' # 2021-10-19
+__version__ = '0.1.0.5' # 2021-10-20
 __url__     = 'https://github.com/KaKkouo/sphindexer'
 
 import re, pathlib
