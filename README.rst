@@ -11,7 +11,7 @@ FEATURE
 -------
 
 - Even when editing glossary with index_key, make clean is not necessary.
-- See/seealso appears at the end.
+- See/seealso appears at the first.
 - When there are multiple functions with the same name, the first one will not be left out.
 - It is relatively easy to customize the display order to your liking.
 
