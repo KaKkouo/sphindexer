@@ -1,17 +1,19 @@
 import unittest
 
-from . import testcase01, testcase02, testcase03, testcase04, testcase05
-from . import testcase06, testcase07, testcase08, testcase09
+from . import testcase01
+from . import testcase11, testcase12, testcase13
+from . import testcase21, testcase31, testcase41
+from . import testcase51, testcase52
 
 def suites():
     suites = unittest.TestSuite()
     suites.addTests(unittest.makeSuite(testcase01.testIndexEntries))
-    suites.addTests(unittest.makeSuite(testcase02.testIndexEntries))
-    suites.addTests(unittest.makeSuite(testcase03.testIndexEntries))
-    suites.addTests(unittest.makeSuite(testcase04.testIndexEntries))
-    suites.addTests(unittest.makeSuite(testcase05.testIndexEntries))
-    suites.addTests(unittest.makeSuite(testcase06.testIndexEntries))
-    suites.addTests(unittest.makeSuite(testcase07.testIndexEntries))
-    suites.addTests(unittest.makeSuite(testcase08.testIndexEntries))
-    suites.addTests(unittest.makeSuite(testcase09.testIndexEntries))
+    suites.addTests(unittest.makeSuite(testcase11.testIndexEntries))
+    suites.addTests(unittest.makeSuite(testcase12.testIndexEntries))
+    suites.addTests(unittest.makeSuite(testcase13.testIndexEntries))
+    suites.addTests(unittest.makeSuite(testcase21.testIndexEntries))
+    suites.addTests(unittest.makeSuite(testcase31.testIndexEntries))
+    suites.addTests(unittest.makeSuite(testcase41.testIndexEntries))
+    suites.addTests(unittest.makeSuite(testcase51.testIndexEntries))
+    suites.addTests(unittest.makeSuite(testcase52.testIndexEntries))
     return suites
