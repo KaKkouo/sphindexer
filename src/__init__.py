@@ -9,7 +9,7 @@ A Sphinx Indexer.
 __copyright__ = 'Copyright (C) 2021 @koKekkoh/Qiita'
 __license__ = 'BSD 2-Clause License'
 __author__  = '@koKekkoh'
-__version__ = '0.1.0.6' # 2021-10-20
+__version__ = '0.1.0.7' # 2021-10-20
 __url__     = 'https://github.com/KaKkouo/sphindexer'
 
 import re, pathlib
@@ -533,7 +533,7 @@ class _StandaloneHTMLBuilder(builders.StandaloneHTMLBuilder):
     オリジナルに依存する部分と拡張部分を区別するために用意したクラス.
     """
 
-    def dispatch_indexer(self) -> None: #KaKkou
+    def index_adapter(self) -> None: #KaKkou
         """
         このように分けてくれると、self.create_index()を書き換えるだけで済む.
         """
@@ -541,7 +541,7 @@ class _StandaloneHTMLBuilder(builders.StandaloneHTMLBuilder):
         return IndexEntries(self.env).create_index(self)
 
     def write_genindex(self) -> None:
-        genindex = self.dispatch_indexer()
+        genindex = self.index_adapter()
 
         #以降の処理はSphinx4.1.2オリジナルと同じ
         indexcounts = []
