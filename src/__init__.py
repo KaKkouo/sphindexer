@@ -2,14 +2,14 @@
 Sphindexer
 ~~~~~~~~~~
 A Sphinx Indexer.
-:copyright: Copyright 2021 by @KoKekkoh/Qiita.
+:copyright: Copyright 2021 by @KoKekkoh.
 :license: BSD, see LICENSE for details.
 """
 
-__copyright__ = 'Copyright (C) 2021 @koKekkoh/Qiita'
+__copyright__ = 'Copyright (C) 2021 @koKekkoh'
 __license__ = 'BSD 2-Clause License'
 __author__  = '@koKekkoh'
-__version__ = '0.1.0.7' # 2021-10-20
+__version__ = '0.1.1' # 2021-10-21
 __url__     = 'https://github.com/KaKkouo/sphindexer'
 
 import re, pathlib
@@ -35,16 +35,12 @@ class Text(nodes.Text):
         self.textclass = Text
         self._rawword = rawword
         super().__init__(rawword, rawword)
-    def __eq__(self, other):
-        return self.astext() == other
-    def __str__(self):
-        return self.astext()
 
 #------------------------------------------------------------
 
 _each_words = re.compile(r' *; +')
 
-class TextEntry(nodes.Element):
+class IndexEntry(nodes.Element):
 
     def __init__(self, rawtext, entry_type='single',
                  file_name=None, target=None, main='', index_key='', textclass=Text):
@@ -66,9 +62,9 @@ class TextEntry(nodes.Element):
 
     def __repr__(self):
         """
-        >>> tentry = TextEntry('sphinx; python', 'single', 'document', 'term-1')
+        >>> tentry = IndexEntry('sphinx; python', 'single', 'document', 'term-1')
         >>> tentry
-        <TextEntry: entry_type='single' file_name='document' target='term-1' <#text: 'sphinx'><#text: 'python'>>
+        <IndexEntry: entry_type='single' file_name='document' target='term-1' <#text: 'sphinx'><#text: 'python'>>
         """
 
         name = self.__class__.__name__
@@ -90,7 +86,7 @@ class TextEntry(nodes.Element):
 
     def astext(self):
         """
-        >>> tentry = TextEntry('sphinx; python', 'single', 'document', 'term-1', None)
+        >>> tentry = IndexEntry('sphinx; python', 'single', 'document', 'term-1', None)
         >>> tentry.astext()
         'sphinx; python'
         """
@@ -100,7 +96,7 @@ class TextEntry(nodes.Element):
 
     def make_index_units(self):
         """
-        >>> tentry = TextEntry('sphinx', 'single', 'document', 'term-1')
+        >>> tentry = IndexEntry('sphinx', 'single', 'document', 'term-1')
         >>> tentry.make_index_units()
         [<IndexUnit: main='5' file_name='document' target='term-1' <#text: ''><#text: 'sphinx'>>]
         """
@@ -157,8 +153,8 @@ class TextEntry(nodes.Element):
 #------------------------------------------------------------
 
 #1-5: IndexRack.put_in_kana_catalogでの優先順.
-#3,5: 同一subterm内でのリンクの表示順.
-#8,9: 同一term内でのsubtermの表示順.
+#3,5: 同一term/subterm内でのリンクの表示順.
+#8,9: 便宜上ここに割り当てる. 表示順は別途.
 _emphasis2char = {
     '_rsvd0_': '0', #reserved
     '_rsvd1_': '1', #reserved
@@ -219,7 +215,7 @@ class IndexRack(object):
 
         for fn, entries in entries.items():
             for entry_type, value, tid, main, index_key in entries:
-                unit = TextEntry(value, entry_type, fn, tid, main, index_key)
+                unit = IndexEntry(value, entry_type, fn, tid, main, index_key)
                 index_units = unit.make_index_units()
                 self.extend(index_units)
 
@@ -297,9 +293,9 @@ class IndexRack(object):
             #'see', 'seealso'の表示順に手を加える.
 
             if unit[self.UNIT_EMPH] in ('7', '8', '9'):
-                order_code = '2' #'see' or 'seealso'
+                order_code = '1' #'see' or 'seealso'
             else:
-                order_code = '1' #'main' or ''
+                order_code = '2' #'main' or ''
 
             unit._sort_order = order_code
 
@@ -529,15 +525,8 @@ class IndexUnit(object):
 #------------------------------------------------------------
 
 class _StandaloneHTMLBuilder(builders.StandaloneHTMLBuilder):
-    """
-    オリジナルに依存する部分と拡張部分を区別するために用意したクラス.
-    """
 
     def index_adapter(self) -> None: #KaKkou
-        """
-        このように分けてくれると、self.create_index()を書き換えるだけで済む.
-        """
-
         return IndexEntries(self.env).create_index(self)
 
     def write_genindex(self) -> None:
@@ -569,13 +558,14 @@ class _StandaloneHTMLBuilder(builders.StandaloneHTMLBuilder):
         else:
             self.handle_page('genindex', genindexcontext, 'genindex.html')
 
-class KanaHTMLBuilder(_StandaloneHTMLBuilder):
+class HTMLBuilder(_StandaloneHTMLBuilder):
     """索引ページの日本語対応"""
 
     name = 'idxr'
 
     def dispatch_indexer(self) -> None: #KaKkou
         """索引の作成"""
+
         #自前のIndexerを使う
         return IndexRack(self).create_genindex()
 
@@ -589,13 +579,9 @@ def setup(app) -> Dict[str, Any]:
     :return: 本Sphinx拡張の基本情報など
     :rtype: Dict[name: value]
     """
-    #HTML出力
-    app.add_builder(KanaHTMLBuilder)
 
-    #設定の登録
-    pass
+    app.add_builder(HTMLBuilder)
 
-    #バージョンの最後は作成日（MMDDYY）
     return {
             'version': __version__,
             'parallel_read_safe': True,

@@ -3,6 +3,7 @@ import unittest
 from src import IndexRack
 from . import util 
 
+#basic
 testcase01i = {
 'doc1': [ ('single','sphinx; bash','id-111','',None), ],
 'doc2': [ ('single','python; php','id-121','',None), ],
@@ -21,6 +22,7 @@ testcase01o = [
      None])])
 ]
 
+#basic
 testcase02i = {
 'doc1': [ ('single','sphinx; tcsh','id-211','',None), ],
 'doc2': [ ('single','python; ruby','id-221','',None), ],
@@ -137,7 +139,22 @@ testcase06o = [
      None])])
 ]
 
+#same term, same subterm.
 testcase07i = {
+'doc1': [ ('single','sphinx; python','id-711','',None), ],
+'doc2': [ ('single','sphinx; python','id-721','',None), ],
+}
+
+testcase07o = [
+('S',
+  [('sphinx',
+    [[],
+     [('python',
+       [('', 'doc1.html#id-711'), ('', 'doc2.html#id-721')])],
+     None])])
+]
+
+testcase11i = {
 'doc1': [ ('single','sphinx; reST','id-711','',None), ],
 'doc2': [ ('single','python; ruby','id-721','',None), ],
 'doc3': [ ('single','sphinx','id-731','',None), ],
@@ -145,63 +162,6 @@ testcase07i = {
 'doc5': [ ('single','sphinx','id-751','',None), ],
 'doc6': [ ('single','python','id-761','',None), ],
 }
-
-testcase07o = [
-('P',
-  [('python',
-    [[('', 'doc4.html#id-741'), ('', 'doc6.html#id-761')],
-     [('ruby', [('', 'doc2.html#id-721')])],
-     None])]),
-('S',
-  [('sphinx',
-    [[('', 'doc3.html#id-731'), ('', 'doc5.html#id-751')],
-     [('reST', [('', 'doc1.html#id-711')])],
-     None])])
-]
-
-testcase08i = {
-'doc1': [ ('single','sphinx; reST','id-811','',None), ],
-'doc2': [ ('single','python; ruby','id-821','',None), ],
-'doc3': [ ('single','sphinx','id-831','',None), ],
-'doc4': [ ('single','python','id-841','',None), ],
-'doc5': [ ('single','sphinx','id-851','main',None), ],
-'doc6': [ ('single','python','id-861','main',None), ],
-}
-
-testcase08o = [
-('P',
-  [('python',
-    [[('main', 'doc6.html#id-861'), ('', 'doc4.html#id-841')],
-     [('ruby', [('', 'doc2.html#id-821')])],
-     None])]),
-('S',
-  [('sphinx',
-    [[('main', 'doc5.html#id-851'), ('', 'doc3.html#id-831')],
-     [('reST', [('', 'doc1.html#id-811')])],
-     None])])
-]
-
-testcase09i = {
-'doc1': [ ('single','sphinx; reST','id-911','',None), ],
-'doc2': [ ('single','python; ruby','id-921','',None), ],
-'doc5': [ ('single','sphinx','id-931','',None), ],
-'doc6': [ ('single','python','id-941','',None), ],
-'doc3': [ ('single','sphinx','id-951','main',None), ],
-'doc4': [ ('single','python','id-961','main',None), ],
-}
-
-testcase09o = [
-('P',
-  [('python',
-    [[('main', 'doc4.html#id-961'), ('', 'doc6.html#id-941')],
-     [('ruby', [('', 'doc2.html#id-921')])],
-     None])]),
-('S',
-  [('sphinx',
-    [[('main', 'doc3.html#id-951'), ('', 'doc5.html#id-931')],
-     [('reST', [('', 'doc1.html#id-911')])],
-     None])])
-]
 
 #-------------------------------------------------------------------
 
@@ -248,26 +208,12 @@ class testIndexEntries(unittest.TestCase):
         gidx = util.IndexEntries(env).create_index(bld)
         self.assertEqual(gidx, testcase06o)
 
-    def test07_single_term_with_sub(self):
+    def test07_single_subterm(self):
         self.maxDiff = None
         env = util.env(testcase07i)
         bld = util.builder(env)
         gidx = util.IndexEntries(env).create_index(bld)
         self.assertEqual(gidx, testcase07o)
-
-    def test08_single_term_with_sub(self):
-        self.maxDiff = None
-        env = util.env(testcase08i)
-        bld = util.builder(env)
-        gidx = util.IndexEntries(env).create_index(bld)
-        self.assertEqual(gidx, testcase08o)
-
-    def test09_single_term_with_sub(self):
-        self.maxDiff = None
-        env = util.env(testcase09i)
-        bld = util.builder(env)
-        gidx = util.IndexEntries(env).create_index(bld)
-        self.assertEqual(gidx, testcase09o)
 
 #-------------------------------------------------------------------
 

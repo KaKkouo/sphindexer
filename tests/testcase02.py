@@ -4,8 +4,7 @@ from src import IndexRack
 from . import util 
 
 testcase01i = {
-'doc1': [
-    ('single','func1() (aaa module)','id-111','',None), ]
+'doc1': [ ('single','func1() (aaa module)','id-111','',None), ]
 }
 
 testcase01o = [
@@ -15,10 +14,8 @@ testcase01o = [
 
 
 testcase02i = {
-'doc1': [
-    ('single','func1() (doc1 module)','id-211','',None),],
-'doc2': [
-    ('single','func1() (doc2 module)','id-221','',None),],
+'doc1': [ ('single','func1() (doc1 module)','id-211','',None),],
+'doc2': [ ('single','func1() (doc2 module)','id-221','',None),],
 }
 
 testcase02o = [
@@ -31,10 +28,8 @@ testcase02o = [
 ]
 
 testcase03i = {
-'doc1': [
-    ('single','func1() (bbbb module)','id-311','',None),],
-'doc2': [
-    ('single','func1() (aaaa module)','id-321','',None),],
+'doc1': [ ('single','func1() (bbbb module)','id-311','',None),],
+'doc2': [ ('single','func1() (aaaa module)','id-321','',None),],
 }
 
 testcase03o = [
@@ -47,14 +42,10 @@ testcase03o = [
 ]
 
 testcase04i = {
-'doc1': [
-    ('single','func1() (doc1 module)','id-411','',None),],
-'doc2': [
-    ('single','func2() (doc2 module)','id-421','',None),],
-'doc3': [
-    ('single','func1() (doc3 module)','id-431','',None),],
-'doc4': [
-    ('single','func2() (odc4 module)','id-441','',None),],
+'doc1': [ ('single','func1() (doc1 module)','id-411','',None),],
+'doc2': [ ('single','func2() (doc2 module)','id-421','',None),],
+'doc3': [ ('single','func1() (doc3 module)','id-431','',None),],
+'doc4': [ ('single','func2() (odc4 module)','id-441','',None),],
 }
 
 testcase04o = [
@@ -72,14 +63,10 @@ testcase04o = [
 ]
 
 testcase05i = {
-'doc1': [
-    ('single','func1() (bbbb module)','id-511','',None),],
-'doc2': [
-    ('single','func2() (bbbb module)','id-521','',None),],
-'doc3': [
-    ('single','func1() (aaaa module)','id-531','',None),],
-'doc4': [
-    ('single','func2() (aaaa module)','id-541','',None),],
+'doc1': [ ('single','func1() (bbbb module)','id-511','',None),],
+'doc2': [ ('single','func2() (bbbb module)','id-521','',None),],
+'doc3': [ ('single','func1() (aaaa module)','id-531','',None),],
+'doc4': [ ('single','func2() (aaaa module)','id-541','',None),],
 }
 
 testcase05o = [
@@ -97,14 +84,10 @@ testcase05o = [
 ]
 
 testcase06i = {
-'doc1': [
-    ('single','func1()','id-611','',None),],
-'doc2': [
-    ('single','func1() (doc2 module)','id-621','',None),],
-'doc3': [
-    ('single','func1() (doc3 module)','id-631','',None),],
-'doc4': [
-    ('single','func1()','id-641','',None),],
+'doc1': [ ('single','func1()','id-611','',None),],
+'doc2': [ ('single','func1() (doc2 module)','id-621','',None),],
+'doc3': [ ('single','func1() (doc3 module)','id-631','',None),],
+'doc4': [ ('single','func1()','id-641','',None),],
 }
 
 testcase06o = [
@@ -117,14 +100,10 @@ testcase06o = [
 ]
 
 testcase07i = {
-'doc1': [
-    ('single','func1()','id-711','',None),],
-'doc2': [
-    ('single','func1() (doc2 module)','id-721','',None),],
-'doc3': [
-    ('single','func1() (doc3 module)','id-731','',None),],
-'doc4': [
-    ('single','func1()','id-741','main',None),],
+'doc1': [ ('single','func1()','id-711','',None),],
+'doc2': [ ('single','func1() (doc2 module)','id-721','',None),],
+'doc3': [ ('single','func1() (doc3 module)','id-731','',None),],
+'doc4': [ ('single','func1()','id-741','main',None),],
 }
 
 testcase07o = [
