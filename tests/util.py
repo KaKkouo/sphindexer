@@ -32,8 +32,8 @@ class IndexEntries(IndexRack):
     def __init__(self, env):
         self.env = env
         self._kana_catalog = {}
+        super().__init__(builder(env))
     def create_index(self, builder):
-        self.__init__(builder)
         self.builder = builder
         self.config = builder.config
         self.get_relative_uri = builder.get_relative_uri
