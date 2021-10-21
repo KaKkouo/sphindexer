@@ -10,7 +10,7 @@ A Sphinx Indexer.
 __copyright__ = 'Copyright (C) 2021 @koKekkoh'
 __license__ = 'BSD 2-Clause License'
 __author__  = '@koKekkoh'
-__version__ = '0.1.2' # 2021-10-21
+__version__ = '0.2.1' # 2021-10-21
 __url__     = 'https://github.com/KaKkouo/sphindexer'
 
 import re
@@ -149,8 +149,8 @@ class IndexEntry(nodes.Element):
 #8,9: 便宜上ここに割り当てる. 表示順は別途.
 _emphasis2char = {
     '_rsvd0_': '0', #reserved
-    '_rsvd1_': '1', #reserved
-    '_rsvd2_': '2', #reserved
+    'conf.py': '1', #parameter values of conf.py
+    'valuerc': '2', #values of a file
     'main':    '3', #glossaryで定義した用語. indexでは「!」が先頭にあるもの.
     '_rsvd4_': '4', #reserved
     '':        '5', #'main', 'see', 'seealso'以外.
