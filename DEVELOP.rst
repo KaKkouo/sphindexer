@@ -17,45 +17,39 @@ structure of the data for genindex.html
 
 - genidex: [(classifier, terms)]
 
-    - classifier: Text
+    - classifier: textclass
     - terms: [(term, list)]
 
-        - term: Text
+        - term: textclass
         - list: [links, subterms, index_key]
 
             - links: [(main, uri)]
             - subterms: [(subterm, links)]
 
-                - subterm: SubTerm[Text]
+                - subterm: SubTerm[textclass]
                 - links: [(main, uri)]
 
             - index_key: str
 
 variables
 
-- term: a Text object.
+- term: a textclass object.
 - rawword: a term.
 - rawtext: ex. 'term', 'term1; term2' or 'term1; term2; term3'
 - rawsouce: means Element.rawsource.
-- text: (T.B.W.)
+- textclass: for extention. IndexRack -> IndexEntry -> IndexUnit.
+- text: (T.B.D.)
 
 methods
 
 - astext: return a string like a eacy identifier
-- __eq__: return a string by astext,  to be identified easily, for unittest
-- __str__: return a string by ashier, for jinja2
 
-Text(extend docutil.nodes.Text)
-
-- object.__eq__: used by unittest and IndexRack.generate_genindex_data
-- object.__str__: used by jinja2.
-
-TextUnit(T.B.D.)
+IndexEntry
 
 - object['entry_type']: 'single', 'pair', 'triple', 'see' or 'seealso'
-- object[0]: Text(rawword)
-- object[1]: Text(rawword)
-- object[2]: Text(rawword)
+- object[0]: textclass(rawword)
+- object[1]: textclass(rawword)
+- object[2]: textclass(rawword)
 - object['file_name']: a file name
 - object['target']: a target id
 - object['main']: 'main' or ''
@@ -73,10 +67,10 @@ IndexRack
 
 IndexUnit
 
-- object[0]: Text(classifier)
-- object[1]: Text(main term)
+- object[0]: textclass(classifier)
+- object[1]: textclass(main term)
 - object.sort_order: for emphasis which means 'main'.
-- object[2]: SubTerm([], [Text(2nd)], or [Text(2nd), Text(3rd)])
+- object[2]: SubTerm([], [textclass(2nd)], or [textclass(2nd), textclass(3rd)])
 - object[3]: emphasis code ('main': 3, '': 5, 'see': 8, 'seealso': 9)
 - object['file_name']: target file
 - object['target']: target id
@@ -86,6 +80,6 @@ IndexUnit
 
 SubTerm
 
-- object[0]: Text
-- object[1]: Text
+- object[0]: textclass
+- object[1]: textclass
 - object.delimiter: ' ' or ', '
