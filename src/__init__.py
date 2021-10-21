@@ -10,7 +10,7 @@ A Sphinx Indexer.
 __copyright__ = 'Copyright (C) 2021 @koKekkoh'
 __license__ = 'BSD 2-Clause License'
 __author__  = '@koKekkoh'
-__version__ = '0.1.2a5' # 2021-10-21
+__version__ = '0.1.2' # 2021-10-21
 __url__     = 'https://github.com/KaKkouo/sphindexer'
 
 import re
@@ -558,7 +558,7 @@ class HTMLBuilder(_StandaloneHTMLBuilder):
 
     name = 'idxr'
 
-    def dispatch_indexer(self) -> None: #KaKkou
+    def index_adapter(self) -> None: #KaKkou
         """索引の作成"""
 
         #自前のIndexerを使う
