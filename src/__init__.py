@@ -2,17 +2,18 @@
 Sphindexer
 ~~~~~~~~~~
 A Sphinx Indexer.
-:copyright: Copyright 2021 by @KoKekkoh.
+
+:copyright: Copyright 2021 by @koKekkoh.
 :license: BSD, see LICENSE for details.
 """
 
 __copyright__ = 'Copyright (C) 2021 @koKekkoh'
 __license__ = 'BSD 2-Clause License'
 __author__  = '@koKekkoh'
-__version__ = '0.1.1.1' # 2021-10-21
+__version__ = '0.1.2a5' # 2021-10-21
 __url__     = 'https://github.com/KaKkouo/sphindexer'
 
-import re, pathlib
+import re
 from typing import TYPE_CHECKING, Any, Dict, List, Tuple, Pattern, Type, cast
 
 from docutils import nodes
@@ -20,21 +21,11 @@ from docutils import nodes
 import sphinx.builders.html as builders
 from sphinx.domains.index import IndexDomain
 from sphinx.errors import NoUri
-from sphinx.environment.adapters.indexentries import IndexEntries
 from sphinx.locale import _, __
 from sphinx.util import logging
-from sphinx.util.nodes import process_index_entry
 from sphinx.writers import html5
 
 logger = logging.getLogger(__name__)
-
-#------------------------------------------------------------
-
-class Text(nodes.Text):
-    def __init__(self, rawword):
-        self.textclass = Text
-        self._rawword = rawword
-        super().__init__(rawword, rawword)
 
 #------------------------------------------------------------
 
@@ -43,9 +34,10 @@ _each_words = re.compile(r' *; +')
 class IndexEntry(nodes.Element):
 
     def __init__(self, rawtext, entry_type='single',
-                 file_name=None, target=None, main='', index_key='', textclass=Text):
+                 file_name=None, target=None, main='', index_key='', textclass=nodes.Text):
         """
-        - textclass: to expand functionality for multi-byte language.
+        - textclass is to expand functionality for multi-byte language.
+        - textclass is given by IndexRack class.
         """
 
         self.delimiter = '; '
@@ -90,8 +82,7 @@ class IndexEntry(nodes.Element):
         >>> tentry.astext()
         'sphinx; python'
         """
-        delimiter = self.delimiter
-        text = delimiter.join(k.astext() for k in self)
+        text = self.delimiter.join(k.astext() for k in self)
         return text
 
     def make_index_units(self):
@@ -112,10 +103,11 @@ class IndexEntry(nodes.Element):
             else:
                 emphasis = _emphasis2char[main]
 
-            if not sub1: sub1 = term.textclass('')
-            if not sub2: sub2 = term.textclass('')
+            if not sub1: sub1 = self.textclass('')
+            if not sub2: sub2 = self.textclass('')
 
-            index_unit = IndexUnit(term, sub1, sub2, emphasis, fn, tid, index_key)
+            index_unit = IndexUnit(term, sub1, sub2, emphasis, fn, tid, index_key,
+                                   self.textclass)
             return index_unit
 
         index_units = []
@@ -187,13 +179,14 @@ class IndexRack(object):
     
     UNIT_CLSF, UNIT_TERM, UNIT_SBTM, UNIT_EMPH = 0, 1, 2, 3
 
-    def __init__(self, builder):
+    def __init__(self, builder, textclass=nodes.Text):
         """IndexUnitの取り込み、整理、並べ替え. データの生成."""
 
         #制御情報の保存
         self.env = builder.env
         self.config = builder.config
         self.get_relative_uri = builder.get_relative_uri
+        self.textclass = textclass
 
     def create_genindex(self, group_entries: bool = True,
                        _fixre: Pattern = re.compile(r'(.*) ([(][^()]*[)])')
@@ -215,7 +208,7 @@ class IndexRack(object):
 
         for fn, entries in entries.items():
             for entry_type, value, tid, main, index_key in entries:
-                unit = IndexEntry(value, entry_type, fn, tid, main, index_key)
+                unit = IndexEntry(value, entry_type, fn, tid, main, index_key, self.textclass)
                 index_units = unit.make_index_units()
                 self.extend(index_units)
 
@@ -242,14 +235,14 @@ class IndexRack(object):
         for unit in units:
             self.append(unit)
 
-    def put_in_classifier_catalog(self, index_key, hier):
+    def put_in_classifier_catalog(self, index_key, word):
         """Text/KanaText共通の処理"""
         if not index_key: return
-        if not hier: return
+        if not word: return
 
-        if not hier in self._classifier_catalog:
+        if not word in self._classifier_catalog:
             #上書きはしない.（∵「make clean」での状況を真とするため）
-            self._classifier_catalog[hier] = index_key
+            self._classifier_catalog[word] = index_key
 
     def put_in_function_catalog(self, texts, _fixre):
         for text in texts:
@@ -281,13 +274,13 @@ class IndexRack(object):
 
             #［重要］if/elifの判定順
             if ikey:
-                unit[self.UNIT_CLSF] = term.textclass(ikey)
+                unit[self.UNIT_CLSF] = self.textclass(ikey)
             elif term.astext() in self._classifier_catalog:
-                unit[self.UNIT_CLSF] = term.textclass(self._classifier_catalog[term.astext()])
+                unit[self.UNIT_CLSF] = self.textclass(self._classifier_catalog[term.astext()])
             else:
                 text = unit[self.UNIT_TERM].astext()
                 char = make_classifier_from_first_letter(text)
-                unit[self.UNIT_CLSF] = term.textclass(char)
+                unit[self.UNIT_CLSF] = self.textclass(char)
 
             #sortkeyの設定
             #'see', 'seealso'の表示順に手を加える.
@@ -317,8 +310,8 @@ class IndexRack(object):
             #状況的にsubtermは空のはず.
             assert not unit[self.UNIT_SBTM], f'{self.__class__.__name__}: subterm is not null'
 
-            unit[self.UNIT_TERM] = i_tm.textclass(m.group(1))
-            obj = i_tm.textclass(m.group(2))
+            unit[self.UNIT_TERM] = self.textclass(m.group(1))
+            obj = self.textclass(m.group(2))
             unit[self.UNIT_SBTM] = SubTerm()
             unit[self.UNIT_SBTM].append(obj)
         #subの情報が消えるが、このケースに該当する場合はsubにはデータがないはず.
@@ -445,7 +438,8 @@ class IndexUnit(object):
 
     CLSF, TERM, SBTM, EMPH = 0, 1, 2, 3
 
-    def __init__(self, term, subterm1, subterm2, emphasis, file_name, target, index_key):
+    def __init__(self, term, subterm1, subterm2, emphasis, file_name, target, index_key,
+                 textclass):
 
         if emphasis == '8':
             subterm = SubTerm(_('see %s'))
@@ -458,7 +452,7 @@ class IndexUnit(object):
             if sbtm.astext():
                 subterm.append(sbtm)
 
-        self._display_data = [term.textclass(''), term, subterm]
+        self._display_data = [textclass(''), term, subterm] 
         self._link_data = (emphasis, file_name, target)
         self._index_key = index_key
 
@@ -527,7 +521,8 @@ class IndexUnit(object):
 class _StandaloneHTMLBuilder(builders.StandaloneHTMLBuilder):
 
     def index_adapter(self) -> None: #KaKkou
-        return IndexEntries(self.env).create_index(self)
+        """return IndexEntries(self.env).create_index(self)"""
+        raise NotImplementedError
 
     def write_genindex(self) -> None:
         genindex = self.index_adapter()
