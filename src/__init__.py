@@ -10,7 +10,7 @@ A Sphinx Indexer.
 __copyright__ = 'Copyright (C) 2021 @koKekkoh'
 __license__ = 'BSD 2-Clause License'
 __author__  = '@koKekkoh'
-__version__ = '0.2.1' # 2021-10-21
+__version__ = '0.2.3b3' # 2021-10-23
 __url__     = 'https://github.com/KaKkouo/sphindexer'
 
 import re
@@ -29,19 +29,102 @@ logger = logging.getLogger(__name__)
 
 #------------------------------------------------------------
 
+class IndexUnit(object):
+
+    CLSF, TERM, SBTM, EMPH = 0, 1, 2, 3
+
+    def __init__(self, term, subterm1, subterm2, emphasis, file_name, target, index_key):
+
+        if emphasis == '8':
+            subterm = SubTerm(_('see %s'))
+        elif emphasis == '9':
+            subterm = SubTerm(_('see also %s'))
+        else:
+            subterm = SubTerm()
+
+        for sbtm in (subterm1, subterm2):
+            if sbtm.astext():
+                subterm.append(sbtm)
+
+        self._display_data = ['', term, subterm] 
+        self._link_data = (emphasis, file_name, target)
+        self._index_key = index_key
+
+    def __repr__(self):
+        """
+        """
+        name = self.__class__.__name__
+        main = self['main']
+        fn = self['file_name']
+        tid = self['target']
+        rpr  = f"<{name}: "
+        if main: rpr += f"main='{main}' "
+        if fn: rpr += f"file_name='{fn}' "
+        if tid: rpr += f"target='{tid}' "
+        rpr += repr(self[0]) + repr(self[1])
+        if len(self[2]) > 0: rpr += repr(self[2])
+        rpr += ">"
+        return rpr
+
+    def __getitem__(self, key):
+        if isinstance(key, str):
+            if key == 'main':      return self._link_data[0]
+            if key == 'file_name': return self._link_data[1]
+            if key == 'target':    return self._link_data[2]
+            if key == 'index_key': return self._index_key
+            raise KeyError(key)
+        elif isinstance(key, int):
+            if key == self.CLSF: return self._display_data[self.CLSF] #classifier
+            if key == self.TERM: return self._display_data[self.TERM] #term
+            if key == self.SBTM: return self._display_data[self.SBTM] #subterm
+            if key == self.EMPH: return self._link_data[0]    #emphasis(main)
+            raise KeyError(key)
+        else:
+            raise TypeError(key)
+
+    def __setitem__(self, key, value): #更新するデータだけ対応する.
+        if isinstance(key, int):
+            if key == self.CLSF: self._display_data[self.CLSF] = value
+            elif key == self.TERM: self._display_data[self.TERM] = value
+            elif key == self.SBTM: self._display_data[self.SBTM] = value
+            elif key == self.EMPH: self._display_data[self.EMPH] = value
+            else: raise KeyError(key)
+        else:
+            raise KeyError(key)
+
+    def get_children(self):
+        children = [self[self.TERM]]
+        if self[2]:
+            for child in self[self.SBTM]._terms:
+                children.append(child)
+        return children
+
+    def set_subterm_delimiter(self, delimiter=', '):
+        self[self.SBTM].set_delimiter(delimiter)
+
+    def astexts(self):
+        texts = [self[self.TERM].astext()]
+
+        for subterm in self[self.SBTM]._terms:
+            texts.append(subterm.astext())
+
+        return texts
+
+#------------------------------------------------------------
+
 _each_words = re.compile(r' *; +')
 
 class IndexEntry(nodes.Element):
 
-    def __init__(self, rawtext, entry_type='single',
-                 file_name=None, target=None, main='', index_key='', textclass=nodes.Text):
+    def __init__(self, rawtext, entry_type='single', file_name=None, target=None,
+                 main='', index_key='', textclass=nodes.Text):
         """
         - textclass is to expand functionality for multi-byte language.
         - textclass is given by IndexRack class.
         """
 
-        self.delimiter = '; '
         self.textclass = textclass
+        self.delimiter = '; '
 
         rawwords = _each_words.split(rawtext)
 
@@ -85,7 +168,7 @@ class IndexEntry(nodes.Element):
         text = self.delimiter.join(k.astext() for k in self)
         return text
 
-    def make_index_units(self):
+    def make_index_units(self, unitclass=IndexUnit):
         """
         >>> tentry = IndexEntry('sphinx', 'single', 'document', 'term-1')
         >>> tentry.make_index_units()
@@ -106,8 +189,7 @@ class IndexEntry(nodes.Element):
             if not sub1: sub1 = self.textclass('')
             if not sub2: sub2 = self.textclass('')
 
-            index_unit = IndexUnit(term, sub1, sub2, emphasis, fn, tid, index_key,
-                                   self.textclass)
+            index_unit = unitclass(term, sub1, sub2, emphasis, fn, tid, index_key)
             return index_unit
 
         index_units = []
@@ -165,9 +247,6 @@ _char2emphasis = {
     '5': '', '6': '', '7': '', '8': 'see', '9': 'seealso',
 }
 
-def make_classifier_from_first_letter(text):
-    return text[:1].upper()
-
 class IndexRack(object):
     """
     1. self.__init__() 初期化. 設定からの読み込み.
@@ -179,7 +258,7 @@ class IndexRack(object):
     
     UNIT_CLSF, UNIT_TERM, UNIT_SBTM, UNIT_EMPH = 0, 1, 2, 3
 
-    def __init__(self, builder, textclass=nodes.Text):
+    def __init__(self, builder, textclass=nodes.Text, entryclass=IndexEntry):
         """IndexUnitの取り込み、整理、並べ替え. データの生成."""
 
         #制御情報の保存
@@ -187,6 +266,7 @@ class IndexRack(object):
         self.config = builder.config
         self.get_relative_uri = builder.get_relative_uri
         self.textclass = textclass
+        self.entryclass = entryclass
 
     def create_genindex(self, group_entries: bool = True,
                        _fixre: Pattern = re.compile(r'(.*) ([(][^()]*[)])')
@@ -208,8 +288,8 @@ class IndexRack(object):
 
         for fn, entries in entries.items():
             for entry_type, value, tid, main, index_key in entries:
-                unit = IndexEntry(value, entry_type, fn, tid, main, index_key, self.textclass)
-                index_units = unit.make_index_units()
+                entry = self.entryclass(value, entry_type, fn, tid, main, index_key)
+                index_units = entry.make_index_units()
                 self.extend(index_units)
 
         self.update_units()
@@ -255,6 +335,9 @@ class IndexRack(object):
             else:
                 pass
 
+    def make_classifier_from_first_letter(self, text):
+        return text[:1].upper()
+
     def update_units(self):
         """rackに格納されている全てのunitの更新を行う."""
 
@@ -269,18 +352,7 @@ class IndexRack(object):
 
             #classifierの設定
 
-            ikey = unit['index_key']
-            term = unit[self.UNIT_TERM]
-
-            #［重要］if/elifの判定順
-            if ikey:
-                unit[self.UNIT_CLSF] = self.textclass(ikey)
-            elif term.astext() in self._classifier_catalog:
-                unit[self.UNIT_CLSF] = self.textclass(self._classifier_catalog[term.astext()])
-            else:
-                text = unit[self.UNIT_TERM].astext()
-                char = make_classifier_from_first_letter(text)
-                unit[self.UNIT_CLSF] = self.textclass(char)
+            self.update_unit_with_classifier_catalog(unit)
 
             #sortkeyの設定
             #'see', 'seealso'の表示順に手を加える.
@@ -291,6 +363,27 @@ class IndexRack(object):
                 order_code = '2' #'main' or ''
 
             unit._sort_order = order_code
+
+    def get_word(self, term):
+        return term.astext()
+
+    def update_unit_with_classifier_catalog(self, unit):
+        """
+        classifierの設定
+        """
+
+        ikey = unit['index_key']
+        term = unit[self.UNIT_TERM]
+
+        #［重要］if/elifの判定順
+        if ikey:
+            unit[self.UNIT_CLSF] = self.textclass(ikey)
+        elif term.astext() in self._classifier_catalog:
+            unit[self.UNIT_CLSF] = self.textclass(self._classifier_catalog[self.get_word(term)])
+        else:
+            text = unit[self.UNIT_TERM].astext()
+            char = self.make_classifier_from_first_letter(text)
+            unit[self.UNIT_CLSF] = self.textclass(char)
 
     def update_unit_with_function_catalog(self, unit):
         """
@@ -338,7 +431,7 @@ class IndexRack(object):
         for unit in self._rack: #rackからunitを取り出す
             i_clf = unit[self.UNIT_CLSF]
             i_tm  = unit[self.UNIT_TERM]
-            i_sub = unit[self.UNIT_SBTM] #see: SubTerm
+            i_sub = unit[self.UNIT_SBTM] 
             i_em  = unit[self.UNIT_EMPH]
             i_fn  = unit['file_name']
             i_tid = unit['target']
@@ -351,7 +444,7 @@ class IndexRack(object):
                 except NoUri:
                     continue
 
-            #see: KanaText.__ne__
+            #see: KanaText.__eq__
             if len(rtnlist) == 0 or not rtnlist[_clf][0] == i_clf.astext(): 
                 rtnlist.append((i_clf, []))
 
@@ -362,7 +455,7 @@ class IndexRack(object):
             r_clfnm = r_clsfr[0] #classifier is KanaText object.
             r_subterms = r_clsfr[1] #[term, term, ..]
 
-            #see: KanaText.__ne__
+            #see: KanaText.__eq__
             if len(r_subterms) == 0 or not r_subterms[_tm][0] == i_tm.astext(): #use __eq__
                 r_subterms.append((i_tm, [[], [], i_iky]))
 
@@ -433,88 +526,6 @@ class SubTerm(nodes.reprunicode):
         for subterm in self._terms:
             text += subterm.astext() + self._delimiter
         return text[:-len(self._delimiter)]
-
-class IndexUnit(object):
-
-    CLSF, TERM, SBTM, EMPH = 0, 1, 2, 3
-
-    def __init__(self, term, subterm1, subterm2, emphasis, file_name, target, index_key,
-                 textclass):
-
-        if emphasis == '8':
-            subterm = SubTerm(_('see %s'))
-        elif emphasis == '9':
-            subterm = SubTerm(_('see also %s'))
-        else:
-            subterm = SubTerm()
-
-        for sbtm in (subterm1, subterm2):
-            if sbtm.astext():
-                subterm.append(sbtm)
-
-        self._display_data = [textclass(''), term, subterm] 
-        self._link_data = (emphasis, file_name, target)
-        self._index_key = index_key
-
-    def __repr__(self):
-        """
-        """
-        name = self.__class__.__name__
-        main = self['main']
-        fn = self['file_name']
-        tid = self['target']
-        rpr  = f"<{name}: "
-        if main: rpr += f"main='{main}' "
-        if fn: rpr += f"file_name='{fn}' "
-        if tid: rpr += f"target='{tid}' "
-        rpr += repr(self[0]) + repr(self[1])
-        if len(self[2]) > 0: rpr += repr(self[2])
-        rpr += ">"
-        return rpr
-
-    def __getitem__(self, key):
-        if isinstance(key, str):
-            if key == 'main':      return self._link_data[0]
-            if key == 'file_name': return self._link_data[1]
-            if key == 'target':    return self._link_data[2]
-            if key == 'index_key': return self._index_key
-            raise KeyError(key)
-        elif isinstance(key, int):
-            if key == self.CLSF: return self._display_data[self.CLSF] #classifier
-            if key == self.TERM: return self._display_data[self.TERM] #term
-            if key == self.SBTM: return self._display_data[self.SBTM] #subterm
-            if key == self.EMPH: return self._link_data[0]    #emphasis(main)
-            raise KeyError(key)
-        else:
-            raise TypeError(key)
-
-    def __setitem__(self, key, value): #更新するデータだけ対応する.
-        if isinstance(key, int):
-            if key == self.CLSF: self._display_data[self.CLSF] = value
-            elif key == self.TERM: self._display_data[self.TERM] = value
-            elif key == self.SBTM: self._display_data[self.SBTM] = value
-            elif key == self.EMPH: self._display_data[self.EMPH] = value
-            else: raise KeyError(key)
-        else:
-            raise KeyError(key)
-
-    def get_children(self):
-        children = [self[self.TERM]]
-        if self[2]:
-            for child in self[self.SBTM]._terms:
-                children.append(child)
-        return children
-
-    def set_subterm_delimiter(self, delimiter=', '):
-        self[self.SBTM].set_delimiter(delimiter)
-
-    def astexts(self):
-        texts = [self[self.TERM].astext()]
-
-        for subterm in self[self.SBTM]._terms:
-            texts.append(subterm.astext())
-
-        return texts
 
 #------------------------------------------------------------
 
