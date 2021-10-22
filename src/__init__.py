@@ -10,7 +10,7 @@ A Sphinx Indexer.
 __copyright__ = 'Copyright (C) 2021 @koKekkoh'
 __license__ = 'BSD 2-Clause License'
 __author__  = '@koKekkoh'
-__version__ = '0.2.3b3' # 2021-10-23
+__version__ = '0.2.3b4' # 2021-10-23
 __url__     = 'https://github.com/KaKkouo/sphindexer'
 
 import re
@@ -381,8 +381,7 @@ class IndexRack(object):
         elif term.astext() in self._classifier_catalog:
             unit[self.UNIT_CLSF] = self.textclass(self._classifier_catalog[self.get_word(term)])
         else:
-            text = unit[self.UNIT_TERM].astext()
-            char = self.make_classifier_from_first_letter(text)
+            char = self.make_classifier_from_first_letter(self.get_word(term))
             unit[self.UNIT_CLSF] = self.textclass(char)
 
     def update_unit_with_function_catalog(self, unit):
