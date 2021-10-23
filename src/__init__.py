@@ -10,7 +10,7 @@ A Sphinx Indexer.
 __copyright__ = 'Copyright (C) 2021 @koKekkoh'
 __license__ = 'BSD 2-Clause License'
 __author__  = '@koKekkoh'
-__version__ = '0.2.3' # 2021-10-23
+__version__ = '0.2.4b2' # 2021-10-24
 __url__     = 'https://github.com/KaKkouo/sphindexer'
 
 import re
@@ -173,6 +173,9 @@ class IndexEntry(nodes.Element):
         """
 
         self.textclass = textclass
+        self.unitclass = IndexUnit
+        self.packclass = SubTerm
+
         self.delimiter = '; '
 
         rawwords = _each_words.split(rawtext)
@@ -217,7 +220,7 @@ class IndexEntry(nodes.Element):
         text = self.delimiter.join(k.astext() for k in self)
         return text
 
-    def make_index_units(self, unitclass, packclass):
+    def make_index_units(self):
         """
         >>> tentry = IndexEntry('sphinx', 'single', 'document', 'term-1')
         >>> tentry.make_index_units()
@@ -237,9 +240,9 @@ class IndexEntry(nodes.Element):
 
             if not sub1: sub1 = self.textclass('')
             if not sub2: sub2 = self.textclass('')
-            subterm = packclass(emphasis, sub1, sub2)
+            subterm = self.packclass(emphasis, sub1, sub2)
 
-            index_unit = unitclass(term, subterm, emphasis, fn, tid, index_key)
+            index_unit = self.unitclass(term, subterm, emphasis, fn, tid, index_key)
             return index_unit
 
         index_units = []
@@ -308,21 +311,20 @@ class IndexRack(object):
     
     UNIT_CLSF, UNIT_TERM, UNIT_SBTM, UNIT_EMPH = 0, 1, 2, 3
 
-    def __init__(self, builder, textclass=nodes.Text, entryclass=IndexEntry,
-                 unitclass=IndexUnit, packclass=SubTerm):
+    def __init__(self, builder):
         """IndexUnitの取り込み、整理、並べ替え. データの生成."""
 
         #制御情報の保存
         self.env = builder.env
         self.config = builder.config
         self.get_relative_uri = builder.get_relative_uri
-        self.textclass = textclass
-        self.entryclass = entryclass
-        self.unitclass = unitclass
-        self.packclass = packclass
+        self.textclass = nodes.Text
+        self.entryclass = IndexEntry
+        self.unitclass = IndexUnit
+        self.packclass = SubTerm
 
     def create_genindex(self, group_entries: bool = True,
-                       _fixre: Pattern = re.compile(r'(.*) ([(][^()]*[)])')
+                        _fixre: Pattern = re.compile(r'(.*) ([(][^()]*[)])')
                      ) -> List[Tuple[str, List[Tuple[str, Any]]]]:
         """IndexEntriesクラス/create_indexメソッドを置き換える."""
 
@@ -342,7 +344,9 @@ class IndexRack(object):
         for fn, entries in entries.items():
             for entry_type, value, tid, main, index_key in entries:
                 entry = self.entryclass(value, entry_type, fn, tid, main, index_key, self.textclass)
-                index_units = entry.make_index_units(self.unitclass, self.packclass)
+                entry.unitclass = self.unitclass
+                entry.packclass = self.packclass
+                index_units = entry.make_index_units()
                 self.extend(index_units)
 
         self.update_units()
