@@ -10,7 +10,7 @@ A Sphinx Indexer.
 __copyright__ = 'Copyright (C) 2021 @koKekkoh'
 __license__ = 'BSD 2-Clause License'
 __author__  = '@koKekkoh'
-__version__ = '0.2.3b8' # 2021-10-23
+__version__ = '0.2.3b9' # 2021-10-23
 __url__     = 'https://github.com/KaKkouo/sphindexer'
 
 import re
@@ -77,10 +77,7 @@ class IndexUnit(object):
 
     CLSF, TERM, SBTM, EMPH = 0, 1, 2, 3
 
-    def __init__(self, term, subterm1, subterm2, emphasis, file_name, target, index_key):
-
-        subterm = SubTerm(emphasis, subterm1, subterm2)
-
+    def __init__(self, term, subterm, emphasis, file_name, target, index_key):
         self._display_data = ['', term, subterm] 
         self._link_data = (emphasis, file_name, target)
         self._index_key = index_key
@@ -225,7 +222,7 @@ class IndexEntry(nodes.Element):
             if not sub2: sub2 = self.textclass('')
             subterm = packclass(emphasis, sub1, sub2)
 
-            index_unit = unitclass(term, sub1, sub2, emphasis, fn, tid, index_key)
+            index_unit = unitclass(term, subterm, emphasis, fn, tid, index_key)
             return index_unit
 
         index_units = []
