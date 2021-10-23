@@ -10,7 +10,7 @@ A Sphinx Indexer.
 __copyright__ = 'Copyright (C) 2021 @koKekkoh'
 __license__ = 'BSD 2-Clause License'
 __author__  = '@koKekkoh'
-__version__ = '0.2.3b6' # 2021-10-23
+__version__ = '0.2.3b7' # 2021-10-23
 __url__     = 'https://github.com/KaKkouo/sphindexer'
 
 import re
@@ -302,7 +302,7 @@ class IndexRack(object):
         - 全unitを見て決める更新処理のための情報収集
         """
         #情報収集
-        self.put_in_classifier_catalog(unit['index_key'], unit[self.UNIT_TERM].astext())
+        self.put_in_classifier_catalog(unit['index_key'], self.get_word(unit[self.UNIT_TERM]))
 
         #情報収集
         if self._group_entries:
