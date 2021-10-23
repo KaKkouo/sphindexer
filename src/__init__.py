@@ -10,7 +10,7 @@ A Sphinx Indexer.
 __copyright__ = 'Copyright (C) 2021 @koKekkoh'
 __license__ = 'BSD 2-Clause License'
 __author__  = '@koKekkoh'
-__version__ = '0.2.3b11' # 2021-10-23
+__version__ = '0.2.3' # 2021-10-23
 __url__     = 'https://github.com/KaKkouo/sphindexer'
 
 import re
