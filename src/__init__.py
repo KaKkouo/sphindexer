@@ -10,7 +10,7 @@ A Sphinx Indexer.
 __copyright__ = 'Copyright (C) 2021 @koKekkoh'
 __license__ = 'BSD 2-Clause License'
 __author__  = '@koKekkoh'
-__version__ = '0.2.3b9' # 2021-10-23
+__version__ = '0.2.3b10' # 2021-10-23
 __url__     = 'https://github.com/KaKkouo/sphindexer'
 
 import re
@@ -26,6 +26,16 @@ from sphinx.util import logging
 from sphinx.writers import html5
 
 logger = logging.getLogger(__name__)
+
+#------------------------------------------------------------
+
+class Empty(str):
+    def __repr__(self):
+        return '<#empty>'
+    def __str__(self):
+        return ''
+    def __bool__(self):
+        return False
 
 #------------------------------------------------------------
 
@@ -106,7 +116,10 @@ class IndexUnit(object):
             if key == 'index_key': return self._index_key
             raise KeyError(key)
         elif isinstance(key, int):
-            if key == self.CLSF: return self._display_data[self.CLSF] #classifier
+            if key == self.CLSF:
+                if self._display_data[self.CLSF]:
+                    return self._display_data[self.CLSF] #classifier
+                else: return Empty()
             if key == self.TERM: return self._display_data[self.TERM] #term
             if key == self.SBTM: return self._display_data[self.SBTM] #subterm
             if key == self.EMPH: return self._link_data[0]    #emphasis(main)
