@@ -10,7 +10,7 @@ A Sphinx Indexer.
 __copyright__ = 'Copyright (C) 2021 @koKekkoh'
 __license__ = 'BSD 2-Clause License'
 __author__  = '@koKekkoh'
-__version__ = '0.2.3b7' # 2021-10-23
+__version__ = '0.2.3b8' # 2021-10-23
 __url__     = 'https://github.com/KaKkouo/sphindexer'
 
 import re
@@ -29,22 +29,57 @@ logger = logging.getLogger(__name__)
 
 #------------------------------------------------------------
 
+class SubTerm(object):
+    """
+    """
+    def __init__(self, emphasis, *terms):
+        self._delimiter = ' '
+
+        if   emphasis == '8': self._template = _('see %s')
+        elif emphasis == '9': self._template = _('see also %s')
+        else: self._template = None
+
+        self._terms = []
+        for term in terms:
+            if term.astext():
+                self._terms.append(term)
+    def set_delimiter(self, delimiter):
+        self._delimiter = delimiter
+    def __repr__(self):
+        rpr  = f"<{self.__class__.__name__}: len={len(self)} "
+        if self._template: rpr += f"tpl='{self._template}' "
+        for s in self._terms:
+            rpr += repr(s)
+        rpr += ">"
+        return rpr
+    def __str__(self):
+        """Jinja2"""
+        return self.astext()
+    def __eq__(self, other):
+        """unittest、IndexRack.generate_genindex_data."""
+        return self.astext() == other
+    def __len__(self):
+        return len(self._terms)
+    def append(self, subterm):
+        self._terms.append(subterm)
+    def astext(self):
+        if self._template and len(self) == 1:
+            return self._template % self._terms[0].astext()
+
+        text = ""
+        for subterm in self._terms:
+            text += subterm.astext() + self._delimiter
+        return text[:-len(self._delimiter)]
+
+#------------------------------------------------------------
+
 class IndexUnit(object):
 
     CLSF, TERM, SBTM, EMPH = 0, 1, 2, 3
 
     def __init__(self, term, subterm1, subterm2, emphasis, file_name, target, index_key):
 
-        if emphasis == '8':
-            subterm = SubTerm(_('see %s'))
-        elif emphasis == '9':
-            subterm = SubTerm(_('see also %s'))
-        else:
-            subterm = SubTerm()
-
-        for sbtm in (subterm1, subterm2):
-            if sbtm.astext():
-                subterm.append(sbtm)
+        subterm = SubTerm(emphasis, subterm1, subterm2)
 
         self._display_data = ['', term, subterm] 
         self._link_data = (emphasis, file_name, target)
@@ -117,7 +152,7 @@ _each_words = re.compile(r' *; +')
 class IndexEntry(nodes.Element):
 
     def __init__(self, rawtext, entry_type='single', file_name=None, target=None,
-                 main='', index_key='', textclass=nodes.Text):
+                 main='', index_key='', textclass=None):
         """
         - textclass is to expand functionality for multi-byte language.
         - textclass is given by IndexRack class.
@@ -168,7 +203,7 @@ class IndexEntry(nodes.Element):
         text = self.delimiter.join(k.astext() for k in self)
         return text
 
-    def make_index_units(self, unitclass=IndexUnit):
+    def make_index_units(self, unitclass, packclass):
         """
         >>> tentry = IndexEntry('sphinx', 'single', 'document', 'term-1')
         >>> tentry.make_index_units()
@@ -188,6 +223,7 @@ class IndexEntry(nodes.Element):
 
             if not sub1: sub1 = self.textclass('')
             if not sub2: sub2 = self.textclass('')
+            subterm = packclass(emphasis, sub1, sub2)
 
             index_unit = unitclass(term, sub1, sub2, emphasis, fn, tid, index_key)
             return index_unit
@@ -258,7 +294,8 @@ class IndexRack(object):
     
     UNIT_CLSF, UNIT_TERM, UNIT_SBTM, UNIT_EMPH = 0, 1, 2, 3
 
-    def __init__(self, builder, textclass=nodes.Text, entryclass=IndexEntry):
+    def __init__(self, builder, textclass=nodes.Text, entryclass=IndexEntry,
+                 unitclass=IndexUnit, packclass=SubTerm):
         """IndexUnitの取り込み、整理、並べ替え. データの生成."""
 
         #制御情報の保存
@@ -267,6 +304,8 @@ class IndexRack(object):
         self.get_relative_uri = builder.get_relative_uri
         self.textclass = textclass
         self.entryclass = entryclass
+        self.unitclass = unitclass
+        self.packclass = packclass
 
     def create_genindex(self, group_entries: bool = True,
                        _fixre: Pattern = re.compile(r'(.*) ([(][^()]*[)])')
@@ -288,8 +327,8 @@ class IndexRack(object):
 
         for fn, entries in entries.items():
             for entry_type, value, tid, main, index_key in entries:
-                entry = self.entryclass(value, entry_type, fn, tid, main, index_key)
-                index_units = entry.make_index_units()
+                entry = self.entryclass(value, entry_type, fn, tid, main, index_key, self.textclass)
+                index_units = entry.make_index_units(self.unitclass, self.packclass)
                 self.extend(index_units)
 
         self.update_units()
@@ -404,9 +443,8 @@ class IndexRack(object):
             assert not unit[self.UNIT_SBTM], f'{self.__class__.__name__}: subterm is not null'
 
             unit[self.UNIT_TERM] = self.textclass(m.group(1))
-            obj = self.textclass(m.group(2))
-            unit[self.UNIT_SBTM] = SubTerm()
-            unit[self.UNIT_SBTM].append(obj)
+            term = self.textclass(m.group(2))
+            unit[self.UNIT_SBTM] = SubTerm(unit[self.UNIT_EMPH], term)
         #subの情報が消えるが、このケースに該当する場合はsubにはデータがないはず.
 
     def sort_units(self):
@@ -491,41 +529,6 @@ class IndexRack(object):
                 if r_fn: r_subterm_links.append((r_main, r_uri))
 
         return rtnlist
-
-class SubTerm(nodes.reprunicode):
-    """
-    """
-    def __init__(self, template=None):
-        self._terms = []
-        self._delimiter = ' '
-        self._template = template
-    def set_delimiter(self, delimiter):
-        self._delimiter = delimiter
-    def __repr__(self):
-        rpr  = f"<{self.__class__.__name__}: len={len(self)} "
-        if self._template: rpr += f"tpl='{self._template}' "
-        for s in self._terms:
-            rpr += repr(s)
-        rpr += ">"
-        return rpr
-    def __str__(self):
-        """Jinja2"""
-        return self.astext()
-    def __eq__(self, other):
-        """unittest、IndexRack.generate_genindex_data."""
-        return self.astext() == other
-    def __len__(self):
-        return len(self._terms)
-    def append(self, subterm):
-        self._terms.append(subterm)
-    def astext(self):
-        if self._template and len(self) == 1:
-            return self._template % self._terms[0].astext()
-
-        text = ""
-        for subterm in self._terms:
-            text += subterm.astext() + self._delimiter
-        return text[:-len(self._delimiter)]
 
 #------------------------------------------------------------
 
