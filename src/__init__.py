@@ -10,7 +10,7 @@ A Sphinx Indexer.
 __copyright__ = 'Copyright (C) 2021 @koKekkoh'
 __license__ = 'BSD 2-Clause License'
 __author__  = '@koKekkoh'
-__version__ = '0.2.3b5' # 2021-10-23
+__version__ = '0.2.3b6' # 2021-10-23
 __url__     = 'https://github.com/KaKkouo/sphindexer'
 
 import re
@@ -374,12 +374,13 @@ class IndexRack(object):
 
         ikey = unit['index_key']
         term = unit[self.UNIT_TERM]
+        word = self.get_word(term)
 
         #［重要］if/elifの判定順
         if ikey:
             unit[self.UNIT_CLSF] = self.textclass(ikey)
-        elif term.astext() in self._classifier_catalog:
-            unit[self.UNIT_CLSF] = self.textclass(self._classifier_catalog[self.get_word(term)])
+        elif word in self._classifier_catalog:
+            unit[self.UNIT_CLSF] = self.textclass(self._classifier_catalog[word])
         else:
             char = self.make_classifier_from_first_letter(term.astext())
             unit[self.UNIT_CLSF] = self.textclass(char)
