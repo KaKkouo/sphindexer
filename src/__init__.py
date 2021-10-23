@@ -10,7 +10,7 @@ A Sphinx Indexer.
 __copyright__ = 'Copyright (C) 2021 @koKekkoh'
 __license__ = 'BSD 2-Clause License'
 __author__  = '@koKekkoh'
-__version__ = '0.2.3b10' # 2021-10-23
+__version__ = '0.2.3b11' # 2021-10-23
 __url__     = 'https://github.com/KaKkouo/sphindexer'
 
 import re
@@ -103,7 +103,11 @@ class IndexUnit(object):
         if main: rpr += f"main='{main}' "
         if fn: rpr += f"file_name='{fn}' "
         if tid: rpr += f"target='{tid}' "
-        rpr += repr(self[0]) + repr(self[1])
+        if self[0]:
+            rpr += repr(self[0])
+        else:
+            rpr += repr(Empty())
+        rpr += repr(self[1])
         if len(self[2]) > 0: rpr += repr(self[2])
         rpr += ">"
         return rpr
