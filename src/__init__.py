@@ -10,7 +10,7 @@ A Sphinx Indexer.
 __copyright__ = 'Copyright (C) 2021 @koKekkoh'
 __license__ = 'BSD 2-Clause License'
 __author__  = '@koKekkoh'
-__version__ = '0.3.0' # 2021-10-24
+__version__ = '0.3.0.1' # 2021-10-25
 __url__     = 'https://github.com/KaKkouo/sphindexer'
 
 import re
@@ -260,9 +260,9 @@ class IndexEntry(nodes.Element):
                 index_units.append(_index_unit(self[1], self[0], ''))
             elif etype == 'triple':
                 index_units.append(_index_unit(self[0], self[1], self[2]))
-                u = _index_unit(self[1], self[2], self[0])
-                u.set_subterm_delimiter()
-                index_units.append(u)
+                unit = _index_unit(self[1], self[2], self[0])
+                unit.set_subterm_delimiter()
+                index_units.append(unit)
                 index_units.append(_index_unit(self[2], self[0], self[1]))
             elif etype == 'see':
                 index_units.append(_index_unit(self[0], self[1], ''))
