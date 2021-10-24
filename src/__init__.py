@@ -10,7 +10,7 @@ A Sphinx Indexer.
 __copyright__ = 'Copyright (C) 2021 @koKekkoh'
 __license__ = 'BSD 2-Clause License'
 __author__  = '@koKekkoh'
-__version__ = '0.2.4' # 2021-10-24
+__version__ = '0.3.0b1' # 2021-10-24
 __url__     = 'https://github.com/KaKkouo/sphindexer'
 
 import re
@@ -19,7 +19,7 @@ from typing import TYPE_CHECKING, Any, Dict, List, Tuple, Pattern, Type, cast
 from docutils import nodes
 
 import sphinx.builders.html as builders
-from sphinx.domains.index import IndexDomain
+from sphinx.domains.index import IndexDomain, IndexRole
 from sphinx.errors import NoUri
 from sphinx.locale import _, __
 from sphinx.util import logging
@@ -550,6 +550,34 @@ class IndexRack(object):
                 if r_fn: r_subterm_links.append((r_main, r_uri))
 
         return rtnlist
+
+#------------------------------------------------------------
+
+class XRefIndex(IndexRole):
+
+    def textclass(sefl, text, rawtext):
+        return Text(text, rawtext)
+
+    def run(self) -> Tuple[List[nodes.Node], List[nodes.system_message]]:
+        target_id = 'index-%s' % self.env.new_serialno('index')
+        if self.has_explicit_title:
+            # if an explicit target is given, process it as a full entry
+            title = self.title
+            entries = process_index_entry(self.target, target_id)
+        else:
+            # otherwise we just create a single entry
+            if self.target.startswith('!'):
+                title = self.title[1:]
+                entries = [('single', self.target[1:], target_id, 'main', None)]
+            else:
+                title = self.title
+                entries = [('single', self.target, target_id, '', None)]
+
+        index = addnodes.index(entries=entries)
+        target = nodes.target('', '', ids=[target_id])
+        text = self.textclass(title, title) #KaKkouo
+        self.set_source_info(index)
+        return [index, target, text], []
 
 #------------------------------------------------------------
 
