@@ -10,7 +10,7 @@ A Sphinx Indexer.
 __copyright__ = 'Copyright (C) 2021 @koKekkoh'
 __license__ = 'BSD 2-Clause License'
 __author__  = '@koKekkoh'
-__version__ = '0.3.0b1' # 2021-10-24
+__version__ = '0.3.0b2' # 2021-10-24
 __url__     = 'https://github.com/KaKkouo/sphindexer'
 
 import re
@@ -23,6 +23,7 @@ from sphinx.domains.index import IndexDomain, IndexRole
 from sphinx.errors import NoUri
 from sphinx.locale import _, __
 from sphinx.util import logging
+from sphinx.util.nodes import process_index_entry
 from sphinx.writers import html5
 
 logger = logging.getLogger(__name__)
