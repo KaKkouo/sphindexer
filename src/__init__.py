@@ -10,7 +10,7 @@ A Sphinx Indexer.
 __copyright__ = 'Copyright (C) 2021 @koKekkoh'
 __license__ = 'BSD 2-Clause License'
 __author__  = '@koKekkoh'
-__version__ = '0.3.0.1' # 2021-10-25
+__version__ = '0.3.1' # 2021-10-25
 __url__     = 'https://github.com/KaKkouo/sphindexer'
 
 import re
@@ -41,7 +41,7 @@ class Empty(str):
 
 #------------------------------------------------------------
 
-class SubTerm(object):
+class Subterm(object):
     """
     """
     def __init__(self, emphasis, *terms):
@@ -176,7 +176,7 @@ class IndexEntry(nodes.Element):
 
         self.textclass = textclass
         self.unitclass = IndexUnit
-        self.packclass = SubTerm
+        self.packclass = Subterm
 
         self.delimiter = '; '
 
@@ -323,7 +323,7 @@ class IndexRack(object):
         self.textclass = nodes.Text
         self.entryclass = IndexEntry
         self.unitclass = IndexUnit
-        self.packclass = SubTerm
+        self.packclass = Subterm
 
     def create_genindex(self, group_entries: bool = True,
                         _fixre: Pattern = re.compile(r'(.*) ([(][^()]*[)])')
@@ -467,7 +467,7 @@ class IndexRack(object):
 
             unit[self.UNIT_TERM] = self.textclass(m.group(1))
             term = self.textclass(m.group(2))
-            unit[self.UNIT_SBTM] = SubTerm(unit[self.UNIT_EMPH], term)
+            unit[self.UNIT_SBTM] = self.packclass(unit[self.UNIT_EMPH], term)
         #subの情報が消えるが、このケースに該当する場合はsubにはデータがないはず.
 
     def sort_units(self):
@@ -537,7 +537,7 @@ class IndexRack(object):
             else:
                 r_fn = i_fn
                 
-            #sub(class SubTerm): [], [KanaText], [KanaText, KanaText].
+            #sub(class Subterm): [], [KanaText], [KanaText, KanaText].
             if len(i_sub) == 0:
                 if r_fn: r_term_links.append((r_main, r_uri))
             elif len(r_subterms) == 0 or not r_subterms[_sub][0] == i_sub.astext():
