@@ -10,7 +10,7 @@ A Sphinx Indexer.
 __copyright__ = 'Copyright (C) 2021 @koKekkoh'
 __license__ = 'BSD 2-Clause License'
 __author__  = '@koKekkoh'
-__version__ = '0.3.0b2' # 2021-10-24
+__version__ = '0.3.0b3' # 2021-10-24
 __url__     = 'https://github.com/KaKkouo/sphindexer'
 
 import re
@@ -18,7 +18,8 @@ from typing import TYPE_CHECKING, Any, Dict, List, Tuple, Pattern, Type, cast
 
 from docutils import nodes
 
-import sphinx.builders.html as builders
+from sphinx import addnodes
+from sphinx.builders import html as builders
 from sphinx.domains.index import IndexDomain, IndexRole
 from sphinx.errors import NoUri
 from sphinx.locale import _, __
