@@ -318,7 +318,7 @@ class IndexRack(object):
         self.unitclass = IndexUnit
         self.packclass = Subterm
 
-    def create_genindex(self, group_entries: bool = True,
+    def create_index(self, group_entries: bool = True,
                         _fixre: Pattern = re.compile(r'(.*) ([(][^()]*[)])')
                      ) -> List[Tuple[str, List[Tuple[str, Any]]]]:
         """IndexEntriesクラス/create_indexメソッドを置き換える."""
