@@ -7,12 +7,6 @@ A Sphinx Indexer.
 :license: BSD, see LICENSE for details.
 """
 
-__copyright__ = 'Copyright (C) 2021 @koKekkoh'
-__license__ = 'BSD 2-Clause License'
-__author__  = '@koKekkoh'
-__version__ = '0.3.1.0.20211025' # 2021-10-25
-__url__     = 'https://github.com/KaKkouo/sphindexer'
-
 import re
 from typing import TYPE_CHECKING, Any, Dict, List, Tuple, Pattern, Type, cast
 
@@ -174,9 +168,6 @@ class IndexEntry(nodes.Element):
         - textclass is given by IndexRack class.
         """
 
-        if textclass is None: textclass = nodes.Text
-        #for doctest
-
         self.textclass = textclass
         self.unitclass = IndexUnit
         self.packclass = Subterm
@@ -194,8 +185,8 @@ class IndexEntry(nodes.Element):
 
     def __repr__(self):
         """
-        >>> entry = IndexEntry('sphinx; python', 'single', 'document', 'term-1')
-        >>> entry
+        >>> tentry = IndexEntry('sphinx; python', 'single', 'document', 'term-1')
+        >>> tentry
         <IndexEntry: entry_type='single' file_name='document' target='term-1' <#text: 'sphinx'><#text: 'python'>>
         """
 
@@ -218,8 +209,8 @@ class IndexEntry(nodes.Element):
 
     def astext(self):
         """
-        >>> entry = IndexEntry('sphinx; python', 'single', 'document', 'term-1', None)
-        >>> entry.astext()
+        >>> tentry = IndexEntry('sphinx; python', 'single', 'document', 'term-1', None)
+        >>> tentry.astext()
         'sphinx; python'
         """
         text = self.delimiter.join(k.astext() for k in self)
@@ -227,9 +218,9 @@ class IndexEntry(nodes.Element):
 
     def make_index_units(self):
         """
-        >>> entry = IndexEntry('sphinx', 'single', 'document', 'term-1')
-        >>> entry.make_index_units()
-        [<IndexUnit: main='5' file_name='document' target='term-1' <#empty><#text: 'sphinx'>>]
+        >>> tentry = IndexEntry('sphinx', 'single', 'document', 'term-1')
+        >>> tentry.make_index_units()
+        [<IndexUnit: main='5' file_name='document' target='term-1' <#text: ''><#text: 'sphinx'>>]
         """
         etype = self['entry_type']
         fn = self['file_name']
@@ -555,101 +546,6 @@ class IndexRack(object):
                 if r_fn: r_subterm_links.append((r_main, r_uri))
 
         return rtnlist
-
-#------------------------------------------------------------
-
-class XRefIndex(IndexRole):
-
-    def textclass(sefl, text, rawtext):
-        return Text(text, rawtext)
-
-    def run(self) -> Tuple[List[nodes.Node], List[nodes.system_message]]:
-        target_id = 'index-%s' % self.env.new_serialno('index')
-        if self.has_explicit_title:
-            # if an explicit target is given, process it as a full entry
-            title = self.title
-            entries = process_index_entry(self.target, target_id)
-        else:
-            # otherwise we just create a single entry
-            if self.target.startswith('!'):
-                title = self.title[1:]
-                entries = [('single', self.target[1:], target_id, 'main', None)]
-            else:
-                title = self.title
-                entries = [('single', self.target, target_id, '', None)]
-
-        index = addnodes.index(entries=entries)
-        target = nodes.target('', '', ids=[target_id])
-        text = self.textclass(title, title) #KaKkouo
-        self.set_source_info(index)
-        return [index, target, text], []
-
-#------------------------------------------------------------
-
-class _StandaloneHTMLBuilder(builders.StandaloneHTMLBuilder):
-
-    def index_adapter(self) -> None: #KaKkou
-        """return IndexEntries(self.env).create_index(self)"""
-        raise NotImplementedError
-
-    def write_genindex(self) -> None:
-        genindex = self.index_adapter()
-
-        #以降の処理はSphinx4.1.2オリジナルと同じ
-        indexcounts = []
-        for _k, entries in genindex:
-            indexcounts.append(sum(1 + len(subitems)
-                                   for _, (_, subitems, _) in entries))
-
-        genindexcontext = {
-            'genindexentries': genindex,
-            'genindexcounts': indexcounts,
-            'split_index': self.config.html_split_index,
-        }
-        logger.info('genindex ', nonl=True)
-
-        if self.config.html_split_index:
-            self.handle_page('genindex', genindexcontext,
-                             'genindex-split.html')
-            self.handle_page('genindex-all', genindexcontext,
-                             'genindex.html')
-            for (key, entries), count in zip(genindex, indexcounts):
-                ctx = {'key': key, 'entries': entries, 'count': count,
-                       'genindexentries': genindex}
-                self.handle_page('genindex-' + key, ctx,
-                                 'genindex-single.html')
-        else:
-            self.handle_page('genindex', genindexcontext, 'genindex.html')
-
-class HTMLBuilder(_StandaloneHTMLBuilder):
-    """索引ページの日本語対応"""
-
-    name = 'idxr'
-
-    def index_adapter(self) -> None: #KaKkou
-        """索引の作成"""
-
-        #自前のIndexerを使う
-        return IndexRack(self).create_genindex()
-
-#------------------------------------------------------------
-
-def setup(app) -> Dict[str, Any]:
-    """各クラスや設定の登録
-
-    :param app: add_buidder, add_config_valueの実行に必要
-    :type app: Sphinx
-    :return: 本Sphinx拡張の基本情報など
-    :rtype: Dict[name: value]
-    """
-
-    app.add_builder(HTMLBuilder)
-
-    return {
-            'version': __version__,
-            'parallel_read_safe': True,
-            'parallel_write_safe': True,
-        }
 
 #------------------------------------------------------------
 
