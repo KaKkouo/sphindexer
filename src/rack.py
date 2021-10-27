@@ -110,7 +110,6 @@ class IndexUnit(object):
             if key == self.CLSF: self._display_data[self.CLSF] = value
             elif key == self.TERM: self._display_data[self.TERM] = value
             elif key == self.SBTM: self._display_data[self.SBTM] = value
-            elif key == self.EMPH: self._display_data[self.EMPH] = value
             else: raise KeyError(key)
         else:
             raise KeyError(key)
