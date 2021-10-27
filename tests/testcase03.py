@@ -36,7 +36,7 @@ class testSubterm(unittest.TestCase):
         self.assertEqual("<Subterm: len=1 tpl='see %s' <#text: 'sphinx'>>", repr(pack))
         self.assertEqual(True, pack == 'see sphinx')
 
-    def test21_one_Text(self):
+    def test21_two_Text(self):
         pack = rack.Subterm('5', nodes.Text('sphinx'), nodes.Text('python'))
         self.assertEqual('sphinx python', str(pack))
         self.assertEqual("<Subterm: len=2 <#text: 'sphinx'><#text: 'python'>>", repr(pack))
