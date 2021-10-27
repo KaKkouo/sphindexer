@@ -44,7 +44,9 @@ class Subterm(object):
         self._terms = []
         for term in terms:
             if term.astext():
-                self._terms.append(term)
+                self.append(term)
+    def append(self, subterm):
+        self._terms.append(subterm)
     def set_delimiter(self, delimiter):
         self._delimiter = delimiter
     def __repr__(self):
@@ -62,8 +64,6 @@ class Subterm(object):
         return self.astext() == other
     def __len__(self):
         return len(self._terms)
-    def append(self, subterm):
-        self._terms.append(subterm)
     def astext(self):
         if self._template and len(self) == 1:
             return self._template % self._terms[0].astext()
