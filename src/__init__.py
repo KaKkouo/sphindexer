@@ -10,7 +10,7 @@ A Sphinx Indexer.
 __copyright__ = 'Copyright (C) 2021 @koKekkoh'
 __license__ = 'BSD 2-Clause License'
 __author__  = '@koKekkoh'
-__version__ = '0.5.0a1' # 2021-10-27
+__version__ = '0.5.0a2' # 2021-10-28
 __url__     = 'https://github.com/KaKkouo/sphindexer'
 
 from typing import Any, Dict, List, Tuple
@@ -37,6 +37,9 @@ class IndexRack(rack.IndexRack): pass
 #------------------------------------------------------------
 
 class XRefIndex(IndexRole):
+    """
+    based on https://github.com/sphinx-doc/sphinx/blob/4.x/sphinx/domains/index.py
+    """
 
     def textclass(sefl, text, rawtext):
         return Text(text, rawtext)
@@ -65,6 +68,9 @@ class XRefIndex(IndexRole):
 #------------------------------------------------------------
 
 class _StandaloneHTMLBuilder(builders.StandaloneHTMLBuilder):
+    """
+    based on https://github.com/sphinx-doc/sphinx/blob/4.x/sphinx/builders/html/__init__.py
+    """
 
     def index_adapter(self) -> None: #KaKkou
         """return IndexEntries(self.env).create_index(self)"""
@@ -113,13 +119,6 @@ class HTMLBuilder(_StandaloneHTMLBuilder):
 #------------------------------------------------------------
 
 def setup(app) -> Dict[str, Any]:
-    """各クラスや設定の登録
-
-    :param app: add_buidder, add_config_valueの実行に必要
-    :type app: Sphinx
-    :return: 本Sphinx拡張の基本情報など
-    :rtype: Dict[name: value]
-    """
 
     app.add_builder(HTMLBuilder)
 

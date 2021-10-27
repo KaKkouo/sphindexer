@@ -439,15 +439,14 @@ class IndexRack(object):
         i_tm = unit[self.UNIT_TERM]
         m = self._fixre.match(i_tm.astext())
 
-        #_fixreが想定する形で関数名とモジュール名があり、同じ名前の関数が複数ある場合.
+        #If you have a function name and a module name in the format that _fixre expects,
+        #and you have multiple functions with the same name.
         if m and self._function_catalog[m.group(1)] > 1:
-            #状況的にsubtermは空のはず.
             assert not unit[self.UNIT_SBTM], f'{self.__class__.__name__}: subterm is not null'
 
             unit[self.UNIT_TERM] = self.textclass(m.group(1))
             term = self.textclass(m.group(2))
             unit[self.UNIT_SBTM] = self.packclass(unit[self.UNIT_EMPH], term)
-        #subの情報が消えるが、このケースに該当する場合はsubにはデータがないはず.
 
     def sort_units(self):
         self._rack.sort(key=lambda x: (
@@ -457,18 +456,14 @@ class IndexRack(object):
             x[self.UNIT_SBTM].astext(), #subterm
             x[self.UNIT_EMPH],          #emphasis(main)
             x['file_name'], x['target']))
-        #x['file_name'], x['target']について.
-        #逆にすると内部的な処理順に依存するため、現状の動作仕様を維持する.
+        #about x['file_name'], x['target'].
+        #Reversing it will make it dependent on the presence of "make clean".
 
     def generate_genindex_data(self):
-        """
-        Text/KanaTextの選択を意識して書く.
-        （Text側で__eq__が実装されることが前提）
-        """
-        rtnlist = [] #判定用
+        rtnlist = [] 
 
         _clf, _tm, _sub = -1, -1, -1
-        for unit in self._rack: #rackからunitを取り出す
+        for unit in self._rack: #take a unit from the rack.
             i_clf = unit[self.UNIT_CLSF]
             i_tm  = unit[self.UNIT_TERM]
             i_sub = unit[self.UNIT_SBTM] 
@@ -488,7 +483,7 @@ class IndexRack(object):
             if len(rtnlist) == 0 or not rtnlist[_clf][0] == i_clf.astext(): 
                 rtnlist.append((i_clf, []))
 
-                #追加された「(clf, [])」を見るように_clfを更新する. 他はリセット.
+                #Update _clf to see "(clf, [])" added. Reset the others.
                 _clf, _tm, _sub = _clf+1, -1, -1
 
             r_clsfr = rtnlist[_clf] #[classifier, [term, term, ..]]
@@ -499,7 +494,7 @@ class IndexRack(object):
             if len(r_subterms) == 0 or not r_subterms[_tm][0] == i_tm.astext(): #use __eq__
                 r_subterms.append((i_tm, [[], [], i_iky]))
 
-                #追加された「(i_tm, [[], [], i_iky])」を見るように_tmを更新する. _subはリセット.
+                #Update _tm to see "(i_tm, [[], [], i_iky])" added. Reset the other.
                 _tm, _sub = _tm+1, -1
 
             r_term = r_subterms[_tm]    #[term, [links, [subterm, subterm, ..], index_key]
@@ -507,10 +502,10 @@ class IndexRack(object):
             r_term_links = r_term[1][0] #[(main, uri), (main, uri), ..]
             r_subterms = r_term[1][1]   #[subterm, subterm, ..]
 
-            #一文字から元の文字列に戻す
+            #Change the code to string.
             r_main = _char2emphasis[i_em]
 
-            #see/seealsoならリンク情報を消す
+            #if it's see/seealso, reset file_name for no uri.
             if r_main in ('see', 'seealso'):
                 r_fn = None
             else:
