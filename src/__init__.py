@@ -10,7 +10,7 @@ A Sphinx Indexer.
 __copyright__ = 'Copyright (C) 2021 @koKekkoh'
 __license__ = 'BSD 2-Clause License'
 __author__  = '@koKekkoh'
-__version__ = '0.4.1.1' # 2021-10-25
+__version__ = '0.5.0a1' # 2021-10-27
 __url__     = 'https://github.com/KaKkouo/sphindexer'
 
 from typing import Any, Dict, List, Tuple

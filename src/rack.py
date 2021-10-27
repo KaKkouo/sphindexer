@@ -79,30 +79,11 @@ class IndexUnit(object):
 
     CLSF, TERM, SBTM, EMPH = 0, 1, 2, 3
 
-    def __init__(self, term, subterm, emphasis, file_name, target, index_key):
+    def __init__(self, term, subterm, sort_code, main, file_name, target, index_key):
         self._display_data = ['', term, subterm] 
-        self._link_data = (emphasis, file_name, target)
+        self._link_data = (main, file_name, target)
         self._index_key = index_key
-
-    def __repr__(self):
-        """
-        """
-        name = self.__class__.__name__
-        main = self['main']
-        fn = self['file_name']
-        tid = self['target']
-        rpr  = f"<{name}: "
-        if main: rpr += f"main='{main}' "
-        if fn: rpr += f"file_name='{fn}' "
-        if tid: rpr += f"target='{tid}' "
-        if self[0]:
-            rpr += repr(self[0])
-        else:
-            rpr += repr(Empty())
-        rpr += repr(self[1])
-        if len(self[2]) > 0: rpr += repr(self[2])
-        rpr += ">"
-        return rpr
+        self._sort_order = sort_code
 
     def __getitem__(self, key):
         if isinstance(key, str):
@@ -123,7 +104,8 @@ class IndexUnit(object):
         else:
             raise TypeError(key)
 
-    def __setitem__(self, key, value): #更新するデータだけ対応する.
+    def __setitem__(self, key, value):
+        """Only the key of the data to be updated will be supported."""
         if isinstance(key, int):
             if key == self.CLSF: self._display_data[self.CLSF] = value
             elif key == self.TERM: self._display_data[self.TERM] = value
@@ -132,6 +114,24 @@ class IndexUnit(object):
             else: raise KeyError(key)
         else:
             raise KeyError(key)
+
+    def __repr__(self):
+        name = self.__class__.__name__
+        main = self['main']
+        fn = self['file_name']
+        tid = self['target']
+        rpr  = f"<{name}: "
+        if main: rpr += f"main='{main}' "
+        if fn: rpr += f"file_name='{fn}' "
+        if tid: rpr += f"target='{tid}' "
+        if self[0]:
+            rpr += repr(self[0])
+        else:
+            rpr += repr(Empty())
+        rpr += repr(self[1])
+        if len(self[2]) > 0: rpr += repr(self[2])
+        rpr += ">"
+        return rpr
 
     def get_children(self):
         children = [self[self.TERM]]
@@ -217,6 +217,8 @@ class IndexEntry(nodes.Element):
 
     def make_index_units(self):
         """
+        The parts where the data structure changes between IndexEntry and IndexUnit will be handled here.
+
         >>> entry = IndexEntry('sphinx', 'single', 'document', 'term-1')
         >>> entry.make_index_units()
         [<IndexUnit: main='5' file_name='document' target='term-1' <#empty><#text: 'sphinx'>>]
@@ -229,15 +231,17 @@ class IndexEntry(nodes.Element):
 
         def _index_unit(term, sub1, sub2):
             if etype in ('see', 'seealso'):
+                sort_code = '1'
                 emphasis = _emphasis2char[etype]
             else:
+                sort_code = '2'
                 emphasis = _emphasis2char[main]
 
             if not sub1: sub1 = self.textclass('')
             if not sub2: sub2 = self.textclass('')
             subterm = self.packclass(emphasis, sub1, sub2)
 
-            index_unit = self.unitclass(term, subterm, emphasis, fn, tid, index_key)
+            index_unit = self.unitclass(term, subterm, sort_code, emphasis, fn, tid, index_key)
             return index_unit
 
         index_units = []
@@ -274,9 +278,9 @@ class IndexEntry(nodes.Element):
 
 #------------------------------------------------------------
 
-#1-5: IndexRack.put_in_kana_catalogでの優先順.
-#3,5: 同一term/subterm内でのリンクの表示順.
-#8,9: 便宜上ここに割り当てる. 表示順は別途.
+#1-5: Priority order in IndexRack.put_in_kana_catalog.
+#3,5: The order in which links are displayed in the same term/subterm.
+#8,9: Assign here for convenience. The display order will be adjusted separately.
 _emphasis2char = {
     '_rsvd0_': '0', #reserved
     'conf.py': '1', #parameter values of conf.py
@@ -297,19 +301,18 @@ _char2emphasis = {
 
 class IndexRack(object):
     """
-    1. self.__init__() 初期化. 設定からの読み込み.
-    2. self.append() IndexUnitの取り込み. self.update()の準備.
-    3. self.update_units() 各unitの更新、並び替えの準備.
-    4. self.sort_units() 並び替え.
-    5. self.generate_genindex_data() genindex用データの生成.
+    1. self.__init__() Initialization. Reading from settings.
+    2. self.append() Importing the IndexUnit object. Preparing for self.update_units().
+    3. self.update_units() Update each IndexUnit object and prepare for self.sort_units().
+    4. self.sort_units() Sorting.
+    5. self.generate_genindex_data()  Generating data for genindex.
     """
     
     UNIT_CLSF, UNIT_TERM, UNIT_SBTM, UNIT_EMPH = 0, 1, 2, 3
 
     def __init__(self, builder):
-        """IndexUnitの取り込み、整理、並べ替え. データの生成."""
 
-        #制御情報の保存
+        #Save control information.
         self.env = builder.env
         self.config = builder.config
         self.get_relative_uri = builder.get_relative_uri
@@ -321,20 +324,20 @@ class IndexRack(object):
     def create_index(self, group_entries: bool = True,
                         _fixre: Pattern = re.compile(r'(.*) ([(][^()]*[)])')
                      ) -> List[Tuple[str, List[Tuple[str, Any]]]]:
-        """IndexEntriesクラス/create_indexメソッドを置き換える."""
+        """see sphinx/environment/adapters/indexentries.py"""
 
-        #引数の保存
+        #Save the arguments.
         self._group_entries = group_entries
         self._fixre = _fixre
 
-        #入れ物の用意とリセット
+        #Initialize the container.
         self._rack = [] # [IndexUnit, IndexUnit, ...]
         self._classifier_catalog = {} # {term: classifier} 
         self._function_catalog = {} #{function name: number of homonymous funcion}
 
         domain = cast(IndexDomain, self.env.get_domain('index'))
         entries = domain.entries
-        #entries: Dict{ファイル名: List[Tuple(type, value, tid, main, index_key)]}
+        #entries: Dict{file name: List[Tuple(type, value, tid, main, index_key)]}
 
         for fn, entries in entries.items():
             for entry_type, value, tid, main, index_key in entries:
@@ -351,17 +354,17 @@ class IndexRack(object):
 
     def append(self, unit):
         """
-        - 全unitを見て決める更新処理のための情報収集
+        Gather information for the update process, which will be determined by looking at all units.
         """
-        #情報収集
+        #Gather information.
         self.put_in_classifier_catalog(unit['index_key'], self.get_word(unit[self.UNIT_TERM]))
         unit[self.UNIT_TERM].whatiam = 'term'
 
-        #情報収集
+        #Gather information.
         if self._group_entries:
             self.put_in_function_catalog(unit.astexts(), self._fixre)
 
-        #unitをrackに乗せる
+        #Put the unit on the rack.
         self._rack.append(unit)
 
     def extend(self, units):
@@ -369,7 +372,6 @@ class IndexRack(object):
             self.append(unit)
 
     def put_in_classifier_catalog(self, index_key, word):
-        """Text/KanaText共通の処理"""
         if not index_key: return
         if not word: return
 
@@ -392,38 +394,22 @@ class IndexRack(object):
         return text[:1].upper()
 
     def update_units(self):
-        """rackに格納されている全てのunitの更新を行う."""
+        """Update with the catalog."""
 
-        #カタログ情報を使った更新
         for unit in self._rack:
             assert [unit[self.UNIT_TERM]]
 
-            #複数ある同名関数の更新
-
+            #Update multiple functions of the same name.
             if self._group_entries:
                 self.update_unit_with_function_catalog(unit)
 
-            #classifierの設定
-
+            #Set the classifier.
             self.update_unit_with_classifier_catalog(unit)
-
-            #sortkeyの設定
-            #'see', 'seealso'の表示順に手を加える.
-
-            if unit[self.UNIT_EMPH] in ('7', '8', '9'):
-                order_code = '1' #'see' or 'seealso'
-            else:
-                order_code = '2' #'main' or ''
-
-            unit._sort_order = order_code
 
     def get_word(self, term):
         return term.astext()
 
     def update_unit_with_classifier_catalog(self, unit):
-        """
-        classifierの設定
-        """
 
         ikey = unit['index_key']
         term = unit[self.UNIT_TERM]
