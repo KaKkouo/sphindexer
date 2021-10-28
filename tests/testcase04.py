@@ -5,6 +5,7 @@ from src import rack
 
 repr00 = "<Subterm: len=2 <#text: 'sphinx'><#text: 'python'>>"
 repr01 = "<IndexUnit: main='3' file_name='doc1' target='term-1' <#empty><#text: 'docutils'><Subterm: len=2 <#text: 'sphinx'><#text: 'python'>>>"
+repr02 = "<IndexUnit: main='3' file_name='doc1' target='term-1' <#text: 'clsf'><#text: 'docutils'><Subterm: len=2 <#text: 'sphinx'><#text: 'python'>>>"
 
 #-------------------------------------------------------------------
 
@@ -17,7 +18,13 @@ class testIndexUnit(unittest.TestCase):
         self.assertEqual(repr00, repr(pack))
         self.assertEqual(repr01, repr(unit))
 
-    def test02_dict(self):
+    def test02_repr(self):
+        pack = rack.Subterm(main, txt('sphinx'), txt('python'))
+        unit = rack.IndexUnit(txt('docutils'), pack, '2', main, 'doc1', 'term-1', 'clsf')
+        unit[0] = txt(unit['index_key'])
+        self.assertEqual(repr02, repr(unit))
+
+    def test03_dict(self):
         pack = rack.Subterm(main, txt('sphinx'), txt('python'))
         unit = rack.IndexUnit(txt('docutils'), pack, '2', main, 'doc1', 'term-1', 'clsf')
         self.assertEqual(main, unit['main'])
@@ -25,7 +32,7 @@ class testIndexUnit(unittest.TestCase):
         self.assertEqual('term-1', unit['target'])
         self.assertEqual('clsf', unit['index_key'])
 
-    def test03_list(self):
+    def test04_list(self):
         pack = rack.Subterm(main, txt('sphinx'), txt('python'))
         unit = rack.IndexUnit(txt('docutils'), pack, '2', main, 'doc1', 'term-1', 'clsf')
         self.assertEqual("<#empty>", repr(unit[0]))
@@ -39,43 +46,43 @@ class testIndexUnit(unittest.TestCase):
         self.assertEqual("<#text: 'docutils'>", repr(unit[1]))
         self.assertEqual(repr00, repr(unit[2]))
 
-    def test04_get_children(self):
+    def test05_get_children(self):
         pack = rack.Subterm(main, txt('sphinx'), txt('python'))
         unit = rack.IndexUnit(txt('docutils'), pack, '2', main, 'doc1', 'term-1', 'clsf')
         self.assertEqual(['docutils', 'sphinx', 'python'], unit.get_children())
 
-    def test05_set_sbtm_delimiter(self):
+    def test06_set_sbtm_delimiter(self):
         pack = rack.Subterm(main, txt('sphinx'), txt('python'))
         unit = rack.IndexUnit(txt('docutils'), pack, '2', main, 'doc1', 'term-1', 'clsf')
         self.assertEqual(['docutils', 'sphinx', 'python'], unit.astexts())
         unit.set_subterm_delimiter()
         self.assertEqual('sphinx, python', unit[2].astext())
 
-    def test06_raise(self):
+    def test07_raise(self):
         pack = rack.Subterm(main, txt('sphinx'), txt('python'))
         unit = rack.IndexUnit(txt('docutils'), pack, '2', main, 'doc1', 'term-1', 'clsf')
         with self.assertRaises(KeyError):
             a = unit['forbar']
 
-    def test07_raise(self):
+    def test08_raise(self):
         pack = rack.Subterm(main, txt('sphinx'), txt('python'))
         unit = rack.IndexUnit(txt('docutils'), pack, '2', main, 'doc1', 'term-1', 'clsf')
         with self.assertRaises(KeyError):
             a = unit[99]
 
-    def test08_raise(self):
+    def test09_raise(self):
         pack = rack.Subterm(main, txt('sphinx'), txt('python'))
         unit = rack.IndexUnit(txt('docutils'), pack, '2', main, 'doc1', 'term-1', 'clsf')
         with self.assertRaises(TypeError):
             a = unit[(99,'a')]
 
-    def test09_raise(self):
+    def test10_raise(self):
         pack = rack.Subterm(main, txt('sphinx'), txt('python'))
         unit = rack.IndexUnit(txt('docutils'), pack, '2', main, 'doc1', 'term-1', 'clsf')
         with self.assertRaises(KeyError):
             unit[99] = 1
 
-    def test10_raise(self):
+    def test11_raise(self):
         pack = rack.Subterm(main, txt('sphinx'), txt('python'))
         unit = rack.IndexUnit(txt('docutils'), pack, '2', main, 'doc1', 'term-1', 'clsf')
         with self.assertRaises(TypeError):
