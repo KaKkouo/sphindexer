@@ -166,7 +166,7 @@ class IndexUnit(object):
 # ------------------------------------------------------------
 
 
-_each_words = re.compile(r' *; +')
+_each_words = re.compile(r' *; *')
 
 
 class IndexEntry(nodes.Element):
@@ -286,6 +286,8 @@ class IndexEntry(nodes.Element):
                     index_units.append(_index_unit(self[i], '', ''))
             else:
                 logger.warning(__('unknown index entry type %r'), etype, location=fn)
+        except IndexError as err:
+            raise IndexError(str(err), repr(self))
         except ValueError as err:
             logger.warning(str(err), location=fn)
 
