@@ -67,6 +67,12 @@ repr07 = f"{head07} {attr07} <#text: 'docutils'><#text: 'sphinx'><#text: 'python
 
 repr070 = "<IndexUnit: main='3' file_name='doc1' target='term-1' <#empty><#text: 'docutils'>>"
 
+head08 = "<IndexEntry: entry_type='foobar'"
+attr08 = "main='main' file_name='doc1' target='term-1' index_key='key'"
+repr08 = f"{head08} {attr08} <#text: 'docutils'><#text: 'sphinx'><#text: 'python'>>"
+
+repr080 = "<IndexUnit: main='3' file_name='doc1' target='term-1' <#empty><#text: 'docutils'>>"
+
 #-------------------------------------------------------------------
 
 main = "3"
@@ -125,6 +131,15 @@ class testIndexEntry(unittest.TestCase):
         self.assertEqual("docutils; sphinx; python", entry.astext())
         units = entry.make_index_units()
         self.assertEqual(repr070, repr(units[0]))
+
+    def test08_other(self):
+        value = 'docutils; sphinx; python'
+        entry = rack.IndexEntry(value, 'foobar', 'doc1', 'term-1', 'main', 'key')
+        self.assertEqual(repr08, repr(entry))
+        self.assertEqual("docutils; sphinx; python", entry.astext())
+        units = entry.make_index_units()
+        with self.assertRaises(IndexError):
+            a = repr(units[0])
 
 #-------------------------------------------------------------------
 
