@@ -156,6 +156,8 @@ _each_words = re.compile(r' *; +')
 
 class IndexEntry(nodes.Element):
 
+    _number_of_terms = {'test': 99}
+
     def __init__(self, rawtext, entry_type='single', file_name=None, target=None,
                  main='', index_key='', textclass=None):
         """
