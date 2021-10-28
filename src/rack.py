@@ -1,10 +1,5 @@
 """
-Sphindexer
-~~~~~~~~~~
-A Sphinx Indexer.
-
-:copyright: Copyright 2021 by @koKekkoh.
-:license: BSD, see LICENSE for details.
+A Sphinx Indexer
 """
 
 import re
@@ -462,10 +457,15 @@ class IndexRack(object):
         # If you have a function name and a module name in the format that _fixre expects,
         # and you have multiple functions with the same name.
         if m and self._function_catalog[m.group(1)] > 1:
-            assert not unit[self.UNIT_SBTM], f'{self.__class__.__name__}: subterm is not null'
-
             unit[self.UNIT_TERM] = self.textclass(m.group(1))
-            term = self.textclass(m.group(2))
+
+            if unit[self.UNIT_SBTM]:
+                subterm = unit[self.UNIT_SBTM].astext()
+                term = self.textclass(m.group(2) + ', ' + subterm)
+            else:
+                term = self.textclass(m.group(2))
+
+ 
             unit[self.UNIT_SBTM] = self.packclass(unit[self.UNIT_EMPH], term)
 
     def sort_units(self):
