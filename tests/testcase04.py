@@ -51,6 +51,36 @@ class testIndexUnit(unittest.TestCase):
         unit.set_subterm_delimiter()
         self.assertEqual('sphinx, python', unit[2].astext())
 
+    def test06_raise(self):
+        pack = rack.Subterm(main, txt('sphinx'), txt('python'))
+        unit = rack.IndexUnit(txt('docutils'), pack, '2', main, 'doc1', 'term-1', 'clsf')
+        with self.assertRaises(KeyError):
+            a = unit['forbar']
+
+    def test07_raise(self):
+        pack = rack.Subterm(main, txt('sphinx'), txt('python'))
+        unit = rack.IndexUnit(txt('docutils'), pack, '2', main, 'doc1', 'term-1', 'clsf')
+        with self.assertRaises(KeyError):
+            a = unit[99]
+
+    def test08_raise(self):
+        pack = rack.Subterm(main, txt('sphinx'), txt('python'))
+        unit = rack.IndexUnit(txt('docutils'), pack, '2', main, 'doc1', 'term-1', 'clsf')
+        with self.assertRaises(TypeError):
+            a = unit[(99,'a')]
+
+    def test09_raise(self):
+        pack = rack.Subterm(main, txt('sphinx'), txt('python'))
+        unit = rack.IndexUnit(txt('docutils'), pack, '2', main, 'doc1', 'term-1', 'clsf')
+        with self.assertRaises(KeyError):
+            unit[99] = 1
+
+    def test10_raise(self):
+        pack = rack.Subterm(main, txt('sphinx'), txt('python'))
+        unit = rack.IndexUnit(txt('docutils'), pack, '2', main, 'doc1', 'term-1', 'clsf')
+        with self.assertRaises(TypeError):
+            unit[(99,'a')] = 1
+
 #-------------------------------------------------------------------
 
 if __name__ == '__main__':
