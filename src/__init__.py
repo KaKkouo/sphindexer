@@ -7,12 +7,6 @@ A Sphinx Indexer.
 :license: BSD, see LICENSE for details.
 """
 
-__copyright__ = 'Copyright (C) 2021 @koKekkoh'
-__license__ = 'BSD 2-Clause License'
-__author__  = '@koKekkoh'
-__version__ = '0.5.1' # 2021-10-28
-__url__     = 'https://github.com/KaKkouo/sphindexer'
-
 from typing import Any, Dict, List, Tuple
 
 from docutils import nodes
@@ -25,24 +19,33 @@ from sphinx.util.nodes import process_index_entry
 
 from . import rack
 
+__copyright__ = 'Copyright (C) 2021 @koKekkoh'
+__license__   = 'BSD 2-Clause License'
+__author__    = '@koKekkoh'
+__version__   = '0.5.1'  # 2021-10-28
+__url__       = 'https://github.com/KaKkouo/sphindexer'
+
 logger = logging.getLogger(__name__)
 
-#------------------------------------------------------------
+# ------------------------------------------------------------
+
 
 class Subterm(rack.Subterm): pass
 class IndexUnit(rack.IndexUnit): pass
 class IndexEntry(rack.IndexEntry): pass
 class IndexRack(rack.IndexRack): pass
 
-#------------------------------------------------------------
+
+# ------------------------------------------------------------
 
 class XRefIndex(IndexRole):
     """
-    based on https://github.com/sphinx-doc/sphinx/blob/4.x/sphinx/domains/index.py
+    based on
+    https://github.com/sphinx-doc/sphinx/blob/4.x/sphinx/domains/index.py
     """
 
     def textclass(sefl, text, rawtext):
-        return Text(text, rawtext)
+        return nodes.Text(text, rawtext)
 
     def run(self) -> Tuple[List[nodes.Node], List[nodes.system_message]]:
         target_id = 'index-%s' % self.env.new_serialno('index')
@@ -61,25 +64,26 @@ class XRefIndex(IndexRole):
 
         index = addnodes.index(entries=entries)
         target = nodes.target('', '', ids=[target_id])
-        text = self.textclass(title, title) #KaKkouo
+        text = self.textclass(title, title)
         self.set_source_info(index)
         return [index, target, text], []
 
-#------------------------------------------------------------
+
+# ------------------------------------------------------------
+
 
 class _StandaloneHTMLBuilder(builders.StandaloneHTMLBuilder):
     """
-    based on https://github.com/sphinx-doc/sphinx/blob/4.x/sphinx/builders/html/__init__.py
+    based on
+    https://github.com/sphinx-doc/sphinx/blob/4.x/sphinx/builders/html/__init__.py
     """
 
-    def index_adapter(self) -> None: #KaKkou
-        """return IndexEntries(self.env).create_index(self)"""
+    def index_adapter(self) -> None:
         raise NotImplementedError
 
     def write_genindex(self) -> None:
         genindex = self.index_adapter()
 
-        #以降の処理はSphinx4.1.2オリジナルと同じ
         indexcounts = []
         for _k, entries in genindex:
             indexcounts.append(sum(1 + len(subitems)
@@ -105,30 +109,30 @@ class _StandaloneHTMLBuilder(builders.StandaloneHTMLBuilder):
         else:
             self.handle_page('genindex', genindexcontext, 'genindex.html')
 
+
 class HTMLBuilder(_StandaloneHTMLBuilder):
-    """索引ページの日本語対応"""
 
     name = 'idxr'
 
-    def index_adapter(self) -> None: #KaKkou
-        """索引の作成"""
-
-        #自前のIndexerを使う
+    def index_adapter(self) -> None:
         return IndexRack(self).create_index()
 
-#------------------------------------------------------------
+
+# ------------------------------------------------------------
+
 
 def setup(app) -> Dict[str, Any]:
 
     app.add_builder(HTMLBuilder)
 
-    return {
-            'version': __version__,
+    return {'version': __version__,
             'parallel_read_safe': True,
             'parallel_write_safe': True,
-        }
+            }
 
-#------------------------------------------------------------
+
+# ------------------------------------------------------------
+
 
 if __name__ == '__main__':
     import doctest
