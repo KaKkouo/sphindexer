@@ -124,7 +124,7 @@ class IndexUnit(object):
             elif key == self.SBTM: self._display_data[self.SBTM] = value
             else: raise KeyError(key)
         else:
-            raise KeyError(key)
+            raise TypeError(key)
 
     def __repr__(self):
         name = self.__class__.__name__
