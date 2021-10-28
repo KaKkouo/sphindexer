@@ -115,6 +115,27 @@ testcase07o = [
      None])])
 ]
 
+testcase08i = {
+'doc1': [ ('single','func1() (doc1 module); sphinx','id-811','',None),],
+'doc2': [ ('single','func2() (doc2 module); sphinx','id-821','',None),],
+'doc3': [ ('single','func1() (doc3 module); python','id-831','',None),],
+'doc4': [ ('single','func2() (odc4 module); python','id-841','',None),],
+}
+
+testcase08o = [
+('F',
+  [('func1()',
+    [[],
+     [('(doc1 module), sphinx', [('', 'doc1.html#id-811')]),
+      ('(doc3 module), python', [('', 'doc3.html#id-831')])],
+     None]),
+  ('func2()',
+    [[],
+     [('(doc2 module), sphinx', [('', 'doc2.html#id-821')]),
+      ('(odc4 module), python', [('', 'doc4.html#id-841')])],
+     None])])
+]
+
 #-------------------------------------------------------------------
 
 class testIndexEntries(unittest.TestCase):
@@ -166,6 +187,13 @@ class testIndexEntries(unittest.TestCase):
         bld = util.builder(env)
         gidx = util.IndexEntries(env).create_index(bld)
         self.assertEqual(gidx, testcase07o)
+
+    def test08_function_catalog(self):
+        self.maxDiff = None
+        env = util.env(testcase08i)
+        bld = util.builder(env)
+        gidx = util.IndexEntries(env).create_index(bld)
+        self.assertEqual(gidx, testcase08o)
 
 #-------------------------------------------------------------------
 
