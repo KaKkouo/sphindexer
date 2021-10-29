@@ -22,7 +22,7 @@ from . import rack
 __copyright__ = 'Copyright (C) 2021 @koKekkoh'
 __license__   = 'BSD 2-Clause License'
 __author__    = '@koKekkoh'
-__version__   = '0.5.4.2'  # 2021-10-29
+__version__   = '0.5.5'  # 2021-10-30
 __url__       = 'https://github.com/KaKkouo/sphindexer'
 
 logger = logging.getLogger(__name__)
@@ -132,8 +132,3 @@ def setup(app) -> Dict[str, Any]:
 
 
 # ------------------------------------------------------------
-
-
-if __name__ == '__main__':
-    import doctest
-    doctest.testmod()

@@ -14,7 +14,7 @@ distdir = workdir + '/out'
 #-------------------------------------------------------------------
 
 class testBuilder(unittest.TestCase):
-    def test01_AttributeError_no_split(self):
+    def test01_build(self):
         application = Sphinx(workdir, workdir, distdir, distdir, "idxr")
         bld = application.builder
 
