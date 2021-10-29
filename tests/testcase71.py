@@ -14,8 +14,11 @@ distdir = workdir + '/tmp'
 #-------------------------------------------------------------------
 
 class testBuilder(unittest.TestCase):
-    def test01_setup(self):
+    def test01_AttributeError(self):
         application = Sphinx(workdir, workdir, distdir, distdir, "idxr")
+        bld = application.builder
+        with self.assertRaises(AttributeError):
+            bld.write_genindex()
 
 #-------------------------------------------------------------------
 
