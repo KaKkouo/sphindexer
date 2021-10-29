@@ -10,6 +10,9 @@ from src import XRefIndex
 
 inliner = Inliner()
 
+def get_source_info(lineno):
+    return ('doc1', lineno)
+
 #-------------------------------------------------------------------
 
 class testXRefIndex(unittest.TestCase):
@@ -33,20 +36,33 @@ class testXRefIndex(unittest.TestCase):
         text = 'sphinx'
         xref = XRefIndex()
         with self.assertRaises(TypeError):
-            rslt, msg = xref('index', text, text, 0, Mock())
+            rslt, msg = xref('index', text, text, 1, Mock())
 
     def test05_TypeError(self):
         text = '!sphinx'
         xref = XRefIndex()
         with self.assertRaises(TypeError):
-            rslt, msg = xref('index', text, text, 0, Mock())
+            rslt, msg = xref('index', text, text, 1, Mock())
 
     def test06_ValueError(self):
         text = 'sphinx<python>'
         mock = MagicMock(return_value=(1, "msg"))
         xref = XRefIndex()
         with self.assertRaises(ValueError):
-            rslt, msg = xref('index', text, text, 0, mock)
+            rslt, msg = xref('index', text, text, 1, mock)
+
+    def test07_AssertionError(self):
+        text = 'sphinx<python>'
+        mock1 = MagicMock(return_value=(1, "msg"))
+        mock2 = MagicMock(return_value=(1, "msg"))
+        inliner.document = mock1
+        inliner.reporter = mock2
+        xref = XRefIndex()
+        xref.get_source_info = get_source_info
+        nodes, msg = xref('index', text, text, len(text), inliner)
+        node = nodes[0]
+        with self.assertRaises(AssertionError):
+            self.assertEqual(node, "")
 
 #-------------------------------------------------------------------
 
