@@ -16,6 +16,7 @@ jobs:
       - checkout
       - python/install-packages:
           pkg-manager: pip
+          pip-dependency-file: requirements.txt 
           # app-dir: ~/project/package-directory/ 
           # pip-dependency-file: test-requirements.txt 
       - run:
