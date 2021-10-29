@@ -9,7 +9,7 @@ from sphinx.errors import SphinxError
 inliner = Inliner()
 
 workdir = 'tests'
-distdir = workdir + '/tmp'
+distdir = workdir + '/out'
 
 #-------------------------------------------------------------------
 
