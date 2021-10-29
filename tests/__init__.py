@@ -3,7 +3,7 @@ import unittest
 from . import testcase01, testcase02, testcase03, testcase04, testcase05
 from . import testcase11, testcase12, testcase13
 from . import testcase21, testcase31, testcase41
-from . import testcase51, testcase52
+from . import testcase51, testcase52, testcase61, testcase71
 
 def suites():
     suites = unittest.TestSuite()
@@ -20,4 +20,6 @@ def suites():
     suites.addTests(unittest.makeSuite(testcase41.testIndexEntries))
     suites.addTests(unittest.makeSuite(testcase51.testIndexEntries))
     suites.addTests(unittest.makeSuite(testcase52.testIndexEntries))
+    suites.addTests(unittest.makeSuite(testcase61.testXRefIndex))
+    suites.addTests(unittest.makeSuite(testcase71.testBaseBuilder))
     return suites
