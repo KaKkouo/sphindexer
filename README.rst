@@ -1,3 +1,7 @@
+.. image:: https://circleci.com/gh/KaKkouo/sphindexer.svg?style=shield
+   :target: https://circleci.com/gh/KaKkouo/sphindexer
+   :alt: Build Status (CircleCI)
+
 A sphinx extension to replace the IndexEntries class.
 
 - Sphindexer = Sphinx + Indexer
