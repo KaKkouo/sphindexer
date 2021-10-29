@@ -21,5 +21,5 @@ def suites():
     suites.addTests(unittest.makeSuite(testcase51.testIndexEntries))
     suites.addTests(unittest.makeSuite(testcase52.testIndexEntries))
     suites.addTests(unittest.makeSuite(testcase61.testXRefIndex))
-    suites.addTests(unittest.makeSuite(testcase71.testBaseBuilder))
+    suites.addTests(unittest.makeSuite(testcase71.testBuilder))
     return suites

@@ -3,7 +3,6 @@ import unittest
 from docutils.parsers.rst.states import Inliner
 from sphinx.application import Sphinx
 from sphinx.errors import SphinxError
-from src import _StandaloneHTMLBuilder as BaseBuilder, setup
 
 #-------------------------------------------------------------------
 
@@ -14,10 +13,9 @@ distdir = workdir + '/tmp'
 
 #-------------------------------------------------------------------
 
-class testBaseBuilder(unittest.TestCase):
+class testBuilder(unittest.TestCase):
     def test01_setup(self):
-        with self.assertRaises(SphinxError):
-            application = Sphinx(workdir, workdir, distdir, distdir, BaseBuilder)
+        application = Sphinx(workdir, workdir, distdir, distdir, "idxr")
 
 #-------------------------------------------------------------------
 
