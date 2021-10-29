@@ -2,6 +2,10 @@
    :target: https://circleci.com/gh/KaKkouo/sphindexer
    :alt: Build Status (CircleCI)
 
+.. image:: https://img.shields.io/badge/License-BSD%202--Clause-blue.svg
+   :target: https://opensource.org/licenses/BSD-2-Clause
+   :alt: BSD 2 Clause
+
 A sphinx extension to replace the IndexEntries class.
 
 - Sphindexer = Sphinx + Indexer
