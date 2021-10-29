@@ -1,6 +1,8 @@
 Sphindexer Project
 ==================
 
+.. index:: example
+
 this is a rst file for test.
 
 .. glossary::
@@ -13,3 +15,7 @@ this is a rst file for test.
 
    Sphinxdexer
        Sphinx + indexer.
+
+This is a :index:`foo<bar>`\ .
+
+

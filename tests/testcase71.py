@@ -14,11 +14,16 @@ distdir = workdir + '/tmp'
 #-------------------------------------------------------------------
 
 class testBuilder(unittest.TestCase):
-    def test01_AttributeError(self):
+    def test01_AttributeError_no_split(self):
         application = Sphinx(workdir, workdir, distdir, distdir, "idxr")
         bld = application.builder
+
         with self.assertRaises(AttributeError):
             bld.write_genindex()
+
+        application.build(False, ['tests/index.rst'])
+        bld.config.html_split_index = True
+        bld.write_genindex()
 
 #-------------------------------------------------------------------
 
