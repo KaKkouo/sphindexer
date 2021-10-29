@@ -24,24 +24,29 @@ class testXRefIndex(unittest.TestCase):
             rslt = xref('index', 'sphinx', 'sphinx', 1, inliner, {}, [])
 
     def test03_TypeError(self):
-        text = 'sphinx'
-        xref = XRefIndex()
-        with self.assertRaises(TypeError):
-            rslt, msg = xref('index', text, text, 0, Mock())
-
-    def test04_TypeError(self):
         text = 'sphinx<python>'
         xref = XRefIndex()
         with self.assertRaises(TypeError):
             rslt, msg = xref('index', text, text, 0, Mock())
 
-    def test05_TypeError(self):
+    def test04_TypeError(self):
         text = 'sphinx'
-        mock1 = MagicMock(return_value=(1, "msg"))
-        mock2 = MagicMock(return_value=(1, "msg"))
+        xref = XRefIndex()
+        with self.assertRaises(TypeError):
+            rslt, msg = xref('index', text, text, 0, Mock())
+
+    def test05_TypeError(self):
+        text = '!sphinx'
+        xref = XRefIndex()
+        with self.assertRaises(TypeError):
+            rslt, msg = xref('index', text, text, 0, Mock())
+
+    def test06_ValueError(self):
+        text = 'sphinx<python>'
+        mock = MagicMock(return_value=(1, "msg"))
         xref = XRefIndex()
         with self.assertRaises(ValueError):
-            rslt, msg = xref('index', text, text, 0, mock1, mock2)
+            rslt, msg = xref('index', text, text, 0, mock)
 
 #-------------------------------------------------------------------
 
