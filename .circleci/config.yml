@@ -23,18 +23,6 @@ jobs:
           command: |
             python src/rack.py
       - run:
-          name: Run Tox py36 tests
-          command: |
-            tox -e py36
-      - run:
-          name: Run Tox py37 tests
-          command: |
-            tox -e py37
-      - run:
-          name: Run Tox py38 tests
-          command: |
-            tox -e py38
-      - run:
           name: Run Coverage tests
           command: |
             coverage run --source=src setup.py test 
