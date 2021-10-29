@@ -61,7 +61,7 @@ head060 = "<IndexUnit: main='9' file_name='doc1' target='term-1'"
 pack060 = "<Subterm: len=1 tpl='see also %s' <#text: 'python'>>"
 repr060 = f"{head060} <#empty><#text: 'sphinx'>{pack060}>"
 
-head07 = "<IndexEntry: entry_type='test'"
+head07 = "<IndexEntry: entry_type='list'"
 attr07 = "main='main' file_name='doc1' target='term-1' index_key='key'"
 repr07 = f"{head07} {attr07} <#text: 'docutils'><#text: 'sphinx'><#text: 'python'>>"
 
@@ -126,7 +126,7 @@ class testIndexEntry(unittest.TestCase):
 
     def test07_other(self):
         value = 'docutils; sphinx; python'
-        entry = rack.IndexEntry(value, 'test', 'doc1', 'term-1', 'main', 'key')
+        entry = rack.IndexEntry(value, 'list', 'doc1', 'term-1', 'main', 'key')
         self.assertEqual(repr07, repr(entry))
         self.assertEqual("docutils; sphinx; python", entry.astext())
         units = entry.make_index_units()
