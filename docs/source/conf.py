@@ -11,7 +11,7 @@ release = '0.2.0'
 
 
 extensions = [
-    'sphindexer',
+    #'sphindexer',
     #'sphinxcontrib.blockdiag',
     'sphinxcontrib.seqdiag',
     #'sphinxcontrib.actdiag',
