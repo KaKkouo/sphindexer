@@ -1,6 +1,8 @@
-DEVELOPMENT
------------
+STRUCTURE
+=========
 structure of the data for genindex.html
+
+.. index:: data structure; entry
 
 - entry: {file_name: [(entry_type, value, target, main, index_key)]}
 
@@ -14,6 +16,8 @@ structure of the data for genindex.html
             - target: the target id
             - main: 'main' or ''
             - index_key: classifier or None
+
+.. index:: data structure; genindex
 
 - genidex: [(classifier, terms)]
 
@@ -44,6 +48,8 @@ methods
 
 - astext: return a string like a eacy identifier
 
+.. index:: class; IndexEntry
+
 IndexEntry
 
 - object['entry_type']: 'single', 'pair', 'triple', 'see' or 'seealso'
@@ -56,6 +62,8 @@ IndexEntry
 - object['index_key']: None or classifier
 - object.make_index_unit(): return [IndexUnit, IndexUnit, ...]
 
+.. index:: class; IndexRack
+
 IndexRack
 
 - object[n]: IndexUnit(...)
@@ -64,6 +72,8 @@ IndexRack
 - object.udpate_units(): update IndexUnit object with all catalog
 - object.sort_units(): to be sorted
 - object.generate_genindex_data()
+
+.. index:: class; IndexUnit
 
 IndexUnit
 
@@ -78,7 +88,9 @@ IndexUnit
 - object['index_key']: None or classifier
 - object.get_children: return [object[1], object[2][0], object[2][1]]
 
-SubTerm
+.. index:: class; Subterm
+
+Subterm
 
 - object[0]: textclass
 - object[1]: textclass
