@@ -1,3 +1,7 @@
+.. image:: https://readthedocs.org/projects/sphindexer/badge/?version=latest
+   :target: https://sphindexer.readthedocs.io/en/latest/
+   :alt: Documentation Status
+
 .. image:: https://circleci.com/gh/KaKkouo/sphindexer.svg?style=shield
    :target: https://circleci.com/gh/KaKkouo/sphindexer
    :alt: Build Status (CircleCI)
