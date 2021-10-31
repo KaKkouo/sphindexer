@@ -3,6 +3,7 @@ A Sphinx Indexer
 """
 
 import re
+from unicodedata import normalize
 from typing import Any, List, Tuple, Pattern, cast
 
 from docutils import nodes
@@ -188,7 +189,7 @@ class IndexEntry(nodes.Element):
 
         terms = []
         for rawword in rawwords:
-            terms.append(textclass(rawword))
+            terms.append(textclass(rawword, rawword))
 
         super().__init__(rawtext, *terms, entry_type=entry_type,
                          file_name=file_name, target=target, main=main, index_key=index_key)
@@ -355,8 +356,8 @@ class IndexRack(object):
         # entries: Dict{file name: List[Tuple(type, value, tid, main, index_key)]}
 
         for fn, entries in entries.items():
-            for entry_type, value, tid, main, index_key in entries:
-                entry = self.entryclass(value, entry_type, fn, tid, main, index_key, self.textclass)
+            for entry_type, value, tid, main, ikey in entries:
+                entry = self.entryclass(value, entry_type, fn, tid, main, ikey, self.textclass)
                 entry.unitclass = self.unitclass
                 entry.packclass = self.packclass
                 index_units = entry.make_index_units()
@@ -406,7 +407,14 @@ class IndexRack(object):
                 pass
 
     def make_classifier_from_first_letter(self, text):
-        return text[:1].upper()
+        text = normalize('NFD', text)
+        if text.startswith('\N{RIGHT-TO-LEFT MARK}'):
+            text = text[1:]
+
+        if text[0].upper().isalpha() or text.startswith('_'):
+            return text[0].upper()
+        else:
+            return _('Symbols')
 
     def update_units(self):
         """Update with the catalog."""
@@ -430,15 +438,17 @@ class IndexRack(object):
         term = unit[self.UNIT_TERM]
         word = self.get_word(term)
 
-        # ［重要］if/elifの判定順
+        # Important: The order in which if/elif decisions are made.
         if ikey:
-            clsf = self.textclass(ikey)
+            _key, _raw = ikey, ikey
         elif word in self._classifier_catalog:
-            clsf = self.textclass(self._classifier_catalog[word])
+            _key, _raw = self._classifier_catalog[word], word
         else:
-            char = self.make_classifier_from_first_letter(term.astext())
-            clsf = self.textclass(char)
+            _key, _raw = self.make_classifier_from_first_letter(term.astext()), term.astext()
+
+        clsf = self.textclass(_key, _raw)
         clsf.whatiam = 'classifier'
+
         unit[self.UNIT_CLSF] = clsf
 
     def update_unit_with_function_catalog(self, unit):
@@ -468,14 +478,30 @@ class IndexRack(object):
  
             unit[self.UNIT_SBTM] = self.packclass(unit[self.UNIT_EMPH], term)
 
+    def for_sort(self, term):
+        text = term.astext()
+        if text == _('Symbols'):
+            return (0, text)
+
+        text = normalize('NFD', text.lower())
+        if text.startswith('\N{RIGHT-TO-LEFT MARK}'):
+            text = text[1:]
+
+        if text[0:1].isalpha() or text.startswith('_'):
+            return (1, text)
+        else:
+            # symbol
+            return (0, text)
+
     def sort_units(self):
-        self._rack.sort(key=lambda x: (
-            x[self.UNIT_CLSF].astext(),  # classifier
-            x[self.UNIT_TERM].astext(),  # term
-            x._sort_order,               # entry type in('see', 'seealso')
-            x[self.UNIT_SBTM].astext(),  # subterm
-            x[self.UNIT_EMPH],           # emphasis(main)
-            x['file_name'], x['target']))
+        self._rack.sort(key=lambda unit: (
+            self.for_sort(unit[self.UNIT_CLSF]),  # classifier
+            self.for_sort(unit[self.UNIT_TERM]),  # term
+            unit._sort_order,                     # entry type in('see', 'seealso')
+            self.for_sort(unit[self.UNIT_SBTM]),  # subterm
+            unit[self.UNIT_EMPH],                 # emphasis(main)
+            unit['file_name'],
+            unit['target']), )
         # about x['file_name'], x['target'].
         # Reversing it will make it dependent on the presence of "make clean".
 
