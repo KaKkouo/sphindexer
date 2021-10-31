@@ -72,7 +72,7 @@ class XRefIndex(IndexRole):
 # ------------------------------------------------------------
 
 
-class _StandaloneHTMLBuilder(builders.StandaloneHTMLBuilder):
+class BaseHTMLBuilder(builders.StandaloneHTMLBuilder):
     """
     based on
     https://github.com/sphinx-doc/sphinx/blob/4.x/sphinx/builders/html/__init__.py
@@ -110,7 +110,7 @@ class _StandaloneHTMLBuilder(builders.StandaloneHTMLBuilder):
             self.handle_page('genindex', genindexcontext, 'genindex.html')
 
 
-class HTMLBuilder(_StandaloneHTMLBuilder):
+class HTMLBuilder(BaseHTMLBuilder):
 
     name = 'idxr'
 
