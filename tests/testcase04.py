@@ -4,8 +4,8 @@ from docutils.nodes import Text as txt
 from src import rack
 
 repr00 = "<Subterm: len=2 <#text: 'sphinx'><#text: 'python'>>"
-repr01 = "<IndexUnit: main='3' file_name='doc1' target='term-1' <#empty><#text: 'docutils'><Subterm: len=2 <#text: 'sphinx'><#text: 'python'>>>"
-repr02 = "<IndexUnit: main='3' file_name='doc1' target='term-1' <#text: 'clsf'><#text: 'docutils'><Subterm: len=2 <#text: 'sphinx'><#text: 'python'>>>"
+repr01 = "<IndexUnit: main file_name='doc1' target='term-1' <#empty><#text: 'docutils'><Subterm: len=2 <#text: 'sphinx'><#text: 'python'>>>"
+repr02 = "<IndexUnit: main file_name='doc1' target='term-1' <#text: 'clsf'><#text: 'docutils'><Subterm: len=2 <#text: 'sphinx'><#text: 'python'>>>"
 
 #-------------------------------------------------------------------
 

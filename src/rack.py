@@ -129,7 +129,7 @@ class IndexUnit(object):
         fn = self['file_name']
         tid = self['target']
         rpr  = f"<{name}: "
-        if main: rpr += f"main='{main}' "
+        if main: rpr += f"main "
         if fn: rpr += f"file_name='{fn}' "
         if tid: rpr += f"target='{tid}' "
         if self[0]:
