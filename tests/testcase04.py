@@ -38,7 +38,7 @@ class testIndexUnit(unittest.TestCase):
         self.assertEqual("<#empty>", repr(unit[0]))
         self.assertEqual("<#text: 'docutils'>", repr(unit[1]))
         self.assertEqual(repr00, repr(unit[2]))
-        self.assertEqual(main, unit[3])
+        self.assertEqual(main, unit['main'])
         unit[0] = txt(unit['index_key'])
         unit[1] = txt(unit[1])
         unit[2] = rack.Subterm(main, txt('sphinx'), txt('python'))

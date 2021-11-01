@@ -86,7 +86,7 @@ class Subterm(object):
 
 class IndexUnit(object):
 
-    CLSF, TERM, SBTM, EMPH = 0, 1, 2, 3
+    CLSF, TERM, SBTM = 0, 1, 2
 
     def __init__(self, term, subterm, link_type, main, file_name, target, index_key):
         self._display_data = ['', term, subterm]
@@ -109,7 +109,6 @@ class IndexUnit(object):
                 else: return Empty()
             if key == self.TERM: return self._display_data[self.TERM]  # term
             if key == self.SBTM: return self._display_data[self.SBTM]  # subterm
-            if key == self.EMPH: return self._link_data[0]             # emphasis(main)
             raise KeyError(key)
         else:
             raise TypeError(key)
@@ -323,7 +322,7 @@ class IndexRack(object):
     5. self.generate_genindex_data()  Generating data for genindex.
     """
 
-    UNIT_CLSF, UNIT_TERM, UNIT_SBTM, UNIT_EMPH = 0, 1, 2, 3
+    UNIT_CLSF, UNIT_TERM, UNIT_SBTM = 0, 1, 2
 
     def __init__(self, builder):
 
@@ -498,7 +497,7 @@ class IndexRack(object):
             self.for_sort(unit[self.UNIT_TERM]),  # term
             unit['link_type'],                    # 1:'see', 2:'seealso', 3:'uri'. see Convert class.
             self.for_sort(unit[self.UNIT_SBTM]),  # subterm
-            unit[self.UNIT_EMPH],                 # 3:'main', 4:''. see Convert class.
+            unit['main'],                         # 3:'main', 4:''. see Convert class.
             unit['file_name'],
             unit['target']), )
         # about x['file_name'], x['target'].
@@ -512,7 +511,7 @@ class IndexRack(object):
             i_clf = unit[self.UNIT_CLSF]
             i_tm  = unit[self.UNIT_TERM]
             i_sub = unit[self.UNIT_SBTM]
-            i_em  = unit[self.UNIT_EMPH]
+            i_em  = unit['main']
             i_lnk = unit['link_type']
             i_fn  = unit['file_name']
             i_tid = unit['target']
