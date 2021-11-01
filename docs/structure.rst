@@ -79,9 +79,9 @@ IndexUnit
 
 - object[0]: textclass(classifier)
 - object[1]: textclass(main term)
-- object.sort_order: for emphasis which means 'main'.
+- object['link']: code (1:'see', 2:'seealso', 3:'uri')
 - object[2]: SubTerm([], [textclass(2nd)], or [textclass(2nd), textclass(3rd)])
-- object[3]: emphasis code ('main': 3, '': 5, 'see': 8, 'seealso': 9)
+- object['emphasis']: code (1:recseved, 2:reserved, 3:'main', 4:'')
 - object['file_name']: target file
 - object['target']: target id
 - object['main']: emphasis
