@@ -53,6 +53,7 @@ class Subterm(object):
 
     def __repr__(self):
         rpr  = f"<{self.__class__.__name__}: len={len(self)} "
+        if self._delimiter != ' ': rpr += f"delimiter='{self._delimiter}' "
         if self._template: rpr += f"tpl='{self._template}' "
         for s in self._terms:
             rpr += repr(s)

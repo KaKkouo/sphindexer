@@ -38,7 +38,7 @@ pack040 = "<Subterm: len=2 <#text: 'sphinx'><#text: 'python'>>"
 repr040 = f"{head040} <#empty><#text: 'docutils'>{pack040}>"
 
 head041 = "<IndexUnit: main='3' file_name='doc1' target='term-1'"
-pack041 = "<Subterm: len=2 <#text: 'python'><#text: 'docutils'>>"
+pack041 = "<Subterm: len=2 delimiter=', ' <#text: 'python'><#text: 'docutils'>>"
 repr041 = f"{head041} <#empty><#text: 'sphinx'>{pack041}>"
 
 head042 = "<IndexUnit: main='3' file_name='doc1' target='term-1'"
