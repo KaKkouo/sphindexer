@@ -49,7 +49,7 @@ head05 = "<IndexEntry: entry_type='see'"
 attr05 = "main='main' file_name='doc1' target='term-1' index_key='key'"
 repr05 = f"{head05} {attr05} <#text: 'sphinx'><#text: 'python'>>"
 
-head050 = "<IndexUnit: main='8' file_name='doc1' target='term-1'"
+head050 = "<IndexUnit: main='3' file_name='doc1' target='term-1'"
 pack050 = "<Subterm: len=1 tpl='see %s' <#text: 'python'>>"
 repr050 = f"{head050} <#empty><#text: 'sphinx'>{pack050}>"
 
@@ -57,7 +57,7 @@ head06 = "<IndexEntry: entry_type='seealso'"
 attr06 = "main='main' file_name='doc1' target='term-1' index_key='key'"
 repr06 = f"{head06} {attr06} <#text: 'sphinx'><#text: 'python'>>"
 
-head060 = "<IndexUnit: main='9' file_name='doc1' target='term-1'"
+head060 = "<IndexUnit: main='3' file_name='doc1' target='term-1'"
 pack060 = "<Subterm: len=1 tpl='see also %s' <#text: 'python'>>"
 repr060 = f"{head060} <#empty><#text: 'sphinx'>{pack060}>"
 
