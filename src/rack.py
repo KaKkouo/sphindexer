@@ -177,30 +177,9 @@ class Convert(object):
         return self._main_to_code[main]
 
     def code2main(self, code):
-        return self._main_to_code[code]
+        return self._code_to_main[code]
 
 _cnv = Convert()
-
-# 1-5: Priority order in IndexRack.put_in_kana_catalog.
-# 3,5: The order in which links are displayed in the same term/subterm.
-# 8,9: Assign here for convenience. The display order will be adjusted separately.
-_emphasis2char = {
-    '_rsvd0_': '0',  # reserved
-    'conf.py': '1',  # parameter values of conf.py
-    'valuerc': '2',  # values of a file
-    'main'   : '3',  # glossaryで定義した用語. indexでは「!」が先頭にあるもの.
-    '_rsvd4_': '4',  # reserved
-    ''       : '5',  # 'main', 'see', 'seealso'以外.
-    '_rsvd6_': '6',  # reserved
-    '_rsvd7_': '7',  # reserved
-    'see'    : '8',
-    'seealso': '9',
-}
-
-_char2emphasis = {
-    '0': '', '1': '', '2': '', '3': 'main', '4': '',
-    '5': '', '6': '', '7': '', '8': 'see', '9': 'seealso',
-}
 
 
 # ------------------------------------------------------------
@@ -291,7 +270,7 @@ class IndexEntry(nodes.Element):
             else:
                 link = _cnv.type2link('uri')
 
-            emphasis = _emphasis2char[main]
+            emphasis = _cnv.main2code(main)
 
             if not sub1: sub1 = self.textclass('')
             if not sub2: sub2 = self.textclass('')
@@ -569,7 +548,7 @@ class IndexRack(object):
             r_subterms = r_term[1][1]    # [subterm, subterm, ..]
 
             # Change the code to string.
-            r_main = _char2emphasis[i_em]
+            r_main = _cnv.code2main(i_em)
 
             # if it's see/seealso, reset file_name for no uri.
             if i_lnk == 3:
