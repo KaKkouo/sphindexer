@@ -17,7 +17,26 @@ testcase01i = {
     'doc6': [('single', '£100', 'id-161', '', None), ], 
 }
 
-testcase01o = []
+testcase01o = [
+('Symbols',
+  [('&-symbol', [[('', 'doc5.html#id-152')], [], None]),
+   ('9-symbol', [[('', 'doc5.html#id-151')], [], None]),
+   ('<200f>עברית<200e>', [[('', 'doc4.html#id-142')], [], None]),
+   ('£100', [[('', 'doc6.html#id-161')], [], None])]),
+ ('D',
+  [('docutils', [[('', 'doc1.html#id-111')], [], None])]),
+ ('P',
+  [('pip',
+    [[],
+     [('install', [('', 'doc2.html#id-121')]),
+      ('upgrade', [('', 'doc2.html#id-122')])],
+     None]),
+   ('Python', [[('', 'doc1.html#id-112')], [], None])]),
+ ('S', [('Sphinx', [[('', 'doc3.html#id-131')], [], None])]),
+ ('Е',
+  [('ёлка', [[('', 'doc4.html#id-141')], [], None]),
+   ('Ель', [[('', 'doc3.html#id-132')], [], None])])
+]
 
 
 #-------------------------------------------------------------------
