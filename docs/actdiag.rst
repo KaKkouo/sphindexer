@@ -1,13 +1,37 @@
 ACTION DIAGRAM
 ==============
 
-.. seqdiag::
+.. actdiag::
 
-   Builder -> IndexRack;
-   Builder -> IndexRack [label = "CALL: create_index"];
-     IndexRack -> IndexEntry;
-     IndexRack -> IndexEntry [label = "CALL: make_index_units"];
-     IndexRack <-- IndexEntry [label = "return: units"];
-     IndexRack -> IndexRack [label = "CALL: update_units"];
-     IndexRack -> IndexRack [label = "CALL: sort_units"];
-   Builder <-- IndexRack [label = "return: genindex"];
+  write ->  get -> domain -> entries
+  -> entry -> make -> unit -> units
+  -> update -> sort -> generate
+  -> index -> handle
+
+  lane builder {
+    label = "builder"
+    write [label = "write_index()"]
+    handle [label = "handle_page()"]
+  }
+
+  lane IndexRack {
+    get [label = "env.get_domain()"]
+    entry
+    update [label = "update_units()"]
+    sort [label = "sort_units()"]
+    index [label = "return: genindex"]
+  }
+
+  lane IndexUnit {
+    unit
+  }
+
+  lane IndexEntry {
+    make [label = "make_index_units"]
+    units [label = "return: unts"]
+  }
+
+  lane Environment {
+    domain [label = "domain.entries"]
+    entries [label = "retrun: entries"]
+  }
