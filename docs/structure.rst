@@ -1,5 +1,5 @@
-STRUCTURE
-=========
+DATA STRUCTURE
+==============
 structure of the data for genindex.html
 
 .. index:: data structure; entry
@@ -37,7 +37,10 @@ structure of the data for genindex.html
 
 variables
 
-- term: a textclass object.
+- term: a :index:`textclass` object.
+- subterm: a :index:`packclass` object.
+- entry: a :index:`entryclass` object.
+- unit: a :index:`unitclass` object.
 - rawword: a term.
 - rawtext: ex. 'term', 'term1; term2' or 'term1; term2; term3'
 - rawsouce: means Element.rawsource.
@@ -47,6 +50,17 @@ variables
 methods
 
 - astext: return a string like a eacy identifier
+
+.. index:: class; IndexRack
+
+IndexRack
+
+- object[n]: IndexUnit(...)
+- object.append(): update classifier_catalog and function_catalog
+- object.extend(): call the object.append() by each IndexUnit object
+- object.udpate_units(): update IndexUnit object with all catalog
+- object.sort_units(): to be sorted
+- object.generate_genindex_data()
 
 .. index:: class; IndexEntry
 
@@ -62,29 +76,17 @@ IndexEntry
 - object['index_key']: None or classifier
 - object.make_index_unit(): return [IndexUnit, IndexUnit, ...]
 
-.. index:: class; IndexRack
-
-IndexRack
-
-- object[n]: IndexUnit(...)
-- object.append(): update classifier_catalog and function_catalog
-- object.extend(): call the object.append() by each IndexUnit object
-- object.udpate_units(): update IndexUnit object with all catalog
-- object.sort_units(): to be sorted
-- object.generate_genindex_data()
-
 .. index:: class; IndexUnit
 
 IndexUnit
 
 - object[0]: textclass(classifier)
 - object[1]: textclass(main term)
-- object['link']: code (1:'see', 2:'seealso', 3:'uri')
+- object['link_type']: code (1:'see', 2:'seealso', 3:'uri')
 - object[2]: SubTerm([], [textclass(2nd)], or [textclass(2nd), textclass(3rd)])
-- object['emphasis']: code (1:recseved, 2:reserved, 3:'main', 4:'')
+- object['main']: 1:reserved, 2:reserved, 3:'main', 4:''
 - object['file_name']: target file
 - object['target']: target id
-- object['main']: emphasis
 - object['index_key']: None or classifier
 - object.get_children: return [object[1], object[2][0], object[2][1]]
 
@@ -95,3 +97,4 @@ Subterm
 - object[0]: textclass
 - object[1]: textclass
 - object.delimiter: ' ' or ', '
+.. index:: class; IndexRack
