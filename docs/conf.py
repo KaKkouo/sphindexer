@@ -13,8 +13,8 @@ release = '0.2.0'
 extensions = [
     #'sphindexer',
     #'sphinxcontrib.blockdiag',
+    'sphinxcontrib.actdiag',
     'sphinxcontrib.seqdiag',
-    #'sphinxcontrib.actdiag',
     #'sphinxcontrib.nwdiag',
     #'sphinxcontrib.rackdiag',
     ]
@@ -27,6 +27,5 @@ exclude_patterns = []
 
 html_theme = 'sphinx_rtd_theme'
 html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
-html_static_path = ['_static']
-#html_static_path = ['.static', 'img']
-#html_favicon = '.static/woman2.ico'
+html_static_path = ['.static', 'img']
+html_favicon = '.static/favicon.ico'

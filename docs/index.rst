@@ -3,7 +3,8 @@ Sphindexer Project
 
 .. toctree::
 
-   sequencediagram
+   seqdiag
+   actdiag
    structure
 
 * :ref:`genindex`
