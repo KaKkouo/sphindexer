@@ -7,4 +7,7 @@ Sphindexer Project
    actdiag
    structure
 
+Indices and Tables
+------------------
+
 * :ref:`genindex`

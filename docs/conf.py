@@ -11,10 +11,10 @@ release = '0.2.0'
 
 
 extensions = [
-    #'sphindexer',
-    #'sphinxcontrib.blockdiag',
+    'sphindexer',
     'sphinxcontrib.actdiag',
     'sphinxcontrib.seqdiag',
+    #'sphinxcontrib.blockdiag',
     #'sphinxcontrib.nwdiag',
     #'sphinxcontrib.rackdiag',
     ]
@@ -27,5 +27,5 @@ exclude_patterns = []
 
 html_theme = 'sphinx_rtd_theme'
 html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
-html_static_path = ['.static', 'img']
+html_static_path = ['.static', ]
 html_favicon = '.static/favicon.ico'
