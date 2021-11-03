@@ -41,7 +41,7 @@ class testSubterm(unittest.TestCase):
         self.assertEqual('sphinx python', str(pack))
         self.assertEqual("<Subterm: len=2 <#text: 'sphinx'><#text: 'python'>>", repr(pack))
         self.assertEqual(True, pack == 'sphinx python')
-        pack.set_delimiter(', ')
+        pack['delimiter'] = ', '
         self.assertEqual('sphinx, python', str(pack))
 
 #-------------------------------------------------------------------

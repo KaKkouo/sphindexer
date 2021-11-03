@@ -19,31 +19,23 @@ logger = logging.getLogger(__name__)
 # ------------------------------------------------------------
 
 
-class Subterm(object):
+class Subterm(nodes.Element):
     def __init__(self, link, *terms):
-        self._delimiter = ' '
+        if   link == 1: template = _('see %s')
+        elif link == 2: template = _('see also %s')
+        else: template = None
 
-        if   link == 1: self._template = _('see %s')
-        elif link == 2: self._template = _('see also %s')
-        else: self._template = None
-
-        self._terms = []
+        _terms = []
         for term in terms:
-            if term.astext():
-                self.append(term)
+            if term.astext(): _terms.append(term)
 
-    def append(self, subterm):
-        self._terms.append(subterm)
-
-    def set_delimiter(self, delimiter):
-        self._delimiter = delimiter
+        super().__init__(''.join([repr(term) for term in terms]), *_terms, delimiter=' ', template=template)
 
     def __repr__(self):
         rpr  = f"<{self.__class__.__name__}: len={len(self)} "
-        if self._delimiter != ' ': rpr += f"delimiter='{self._delimiter}' "
-        if self._template: rpr += f"tpl='{self._template}' "
-        for s in self._terms:
-            rpr += repr(s)
+        if self['delimiter'] != ' ': rpr += f"delimiter='{self['delimiter']}' "
+        if self['template']: rpr += f"tpl='{self['template']}' "
+        for s in self: rpr += repr(s)
         rpr += ">"
         return rpr
 
@@ -55,17 +47,14 @@ class Subterm(object):
         """unittest、IndexRack.generate_genindex_data."""
         return self.astext() == other
 
-    def __len__(self):
-        return len(self._terms)
-
     def astext(self):
-        if self._template and len(self) == 1:
-            return self._template % self._terms[0].astext()
+        if self['template'] and len(self) == 1:
+            return self['template'] % self[0].astext()
 
         text = ""
-        for subterm in self._terms:
-            text += subterm.astext() + self._delimiter
-        return text[:-len(self._delimiter)]
+        for subterm in self:
+            text += subterm.astext() + self['delimiter']
+        return text[:-len(self['delimiter'])]
 
 
 # ------------------------------------------------------------
@@ -102,17 +91,17 @@ class IndexUnit(nodes.Element):
     def get_children(self):
         children = [self[self.TERM]]
         if self[2]:
-            for child in self[self.SBTM]._terms:
+            for child in self[self.SBTM]:
                 children.append(child)
         return children
 
     def set_subterm_delimiter(self, delimiter=', '):
-        self[self.SBTM].set_delimiter(delimiter)
+        self[self.SBTM]['delimiter'] = delimiter
 
     def astexts(self):
         texts = [self[self.TERM].astext()]
 
-        for subterm in self[self.SBTM]._terms:
+        for subterm in self[self.SBTM]:
             texts.append(subterm.astext())
 
         return texts
@@ -425,13 +414,12 @@ class IndexRack(object):
         if m and self._function_catalog[m.group(1)] > 1:
             unit[self.UNIT_TERM] = self.textclass(m.group(1))
 
-            if unit[self.UNIT_SBTM]:
+            if unit[self.UNIT_SBTM].astext():
                 subterm = unit[self.UNIT_SBTM].astext()
                 term = self.textclass(m.group(2) + ', ' + subterm)
             else:
                 term = self.textclass(m.group(2))
 
- 
             unit[self.UNIT_SBTM] = self.packclass(unit['link_type'], term)
 
     def for_sort(self, term):
