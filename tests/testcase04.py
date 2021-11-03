@@ -46,11 +46,6 @@ class testIndexUnit(unittest.TestCase):
         self.assertEqual("<#text: 'docutils'>", repr(unit[1]))
         self.assertEqual(repr00, repr(unit[2]))
 
-    def test05_get_children(self):
-        pack = rack.Subterm(main, txt('sphinx'), txt('python'))
-        unit = rack.IndexUnit(txt('docutils'), pack, '2', main, 'doc1', 'term-1', 'clsf')
-        self.assertEqual(['docutils', 'sphinx', 'python'], unit.get_children())
-
     def test06_set_sbtm_delimiter(self):
         pack = rack.Subterm(main, txt('sphinx'), txt('python'))
         unit = rack.IndexUnit(txt('docutils'), pack, '2', main, 'doc1', 'term-1', 'clsf')
