@@ -15,19 +15,6 @@ from sphinx.util import logging
 
 logger = logging.getLogger(__name__)
 
-# ------------------------------------------------------------
-
-
-class Empty(str):
-    def __repr__(self):
-        return '<#empty>'
-
-    def __str__(self):
-        return ''
-
-    def __bool__(self):
-        return False
-
 
 # ------------------------------------------------------------
 
@@ -84,44 +71,18 @@ class Subterm(object):
 # ------------------------------------------------------------
 
 
-class IndexUnit(object):
+class IndexUnit(nodes.Element):
 
     CLSF, TERM, SBTM = 0, 1, 2
 
     def __init__(self, term, subterm, link_type, main, file_name, target, index_key):
-        self._display_data = ['', term, subterm]
-        self._link_data = (main, file_name, target)
-        self._index_key = index_key
-        self._link_type = link_type
 
-    def __getitem__(self, key):
-        if isinstance(key, str):
-            if key == 'main'     : return self._link_data[0]
-            if key == 'file_name': return self._link_data[1]
-            if key == 'target'   : return self._link_data[2]
-            if key == 'index_key': return self._index_key
-            if key == 'link_type': return self._link_type
-            raise KeyError(key)
-        elif isinstance(key, int):
-            if key == self.CLSF:
-                if self._display_data[self.CLSF]:
-                    return self._display_data[self.CLSF]  # classifier
-                else: return Empty()
-            if key == self.TERM: return self._display_data[self.TERM]  # term
-            if key == self.SBTM: return self._display_data[self.SBTM]  # subterm
-            raise KeyError(key)
-        else:
-            raise TypeError(key)
+        super().__init__(repr(term)+repr(subterm),  # rawsource used for debug.
+                         self.textclass(''), term, subterm, link_type=link_type,
+                         main=main, file_name=file_name, target=target, index_key=index_key)
 
-    def __setitem__(self, key, value):
-        """Only the key of the data to be updated will be supported."""
-        if isinstance(key, int):
-            if key == self.CLSF: self._display_data[self.CLSF] = value
-            elif key == self.TERM: self._display_data[self.TERM] = value
-            elif key == self.SBTM: self._display_data[self.SBTM] = value
-            else: raise KeyError(key)
-        else:
-            raise TypeError(key)
+    def textclass(self, rawword, rawsource=""):
+        return nodes.Text(rawword, rawsource)
 
     def __repr__(self):
         name = self.__class__.__name__
@@ -132,10 +93,7 @@ class IndexUnit(object):
         if main: rpr += f"main "
         if fn: rpr += f"file_name='{fn}' "
         if tid: rpr += f"target='{tid}' "
-        if self[0]:
-            rpr += repr(self[0])
-        else:
-            rpr += repr(Empty())
+        rpr += repr(self[0])
         rpr += repr(self[1])
         if len(self[2]) > 0: rpr += repr(self[2])
         rpr += ">"

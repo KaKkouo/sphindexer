@@ -4,7 +4,7 @@ from docutils.nodes import Text as txt
 from src import rack
 
 repr00 = "<Subterm: len=2 <#text: 'sphinx'><#text: 'python'>>"
-repr01 = "<IndexUnit: main file_name='doc1' target='term-1' <#empty><#text: 'docutils'><Subterm: len=2 <#text: 'sphinx'><#text: 'python'>>>"
+repr01 = "<IndexUnit: main file_name='doc1' target='term-1' <#text: ''><#text: 'docutils'><Subterm: len=2 <#text: 'sphinx'><#text: 'python'>>>"
 repr02 = "<IndexUnit: main file_name='doc1' target='term-1' <#text: 'clsf'><#text: 'docutils'><Subterm: len=2 <#text: 'sphinx'><#text: 'python'>>>"
 
 #-------------------------------------------------------------------
@@ -35,7 +35,7 @@ class testIndexUnit(unittest.TestCase):
     def test04_list(self):
         pack = rack.Subterm(main, txt('sphinx'), txt('python'))
         unit = rack.IndexUnit(txt('docutils'), pack, '2', main, 'doc1', 'term-1', 'clsf')
-        self.assertEqual("<#empty>", repr(unit[0]))
+        self.assertEqual("<#text: ''>", repr(unit[0]))
         self.assertEqual("<#text: 'docutils'>", repr(unit[1]))
         self.assertEqual(repr00, repr(unit[2]))
         self.assertEqual(main, unit['main'])
@@ -67,7 +67,7 @@ class testIndexUnit(unittest.TestCase):
     def test08_raise(self):
         pack = rack.Subterm(main, txt('sphinx'), txt('python'))
         unit = rack.IndexUnit(txt('docutils'), pack, '2', main, 'doc1', 'term-1', 'clsf')
-        with self.assertRaises(KeyError):
+        with self.assertRaises(IndexError):
             a = unit[99]
 
     def test09_raise(self):
@@ -79,7 +79,7 @@ class testIndexUnit(unittest.TestCase):
     def test10_raise(self):
         pack = rack.Subterm(main, txt('sphinx'), txt('python'))
         unit = rack.IndexUnit(txt('docutils'), pack, '2', main, 'doc1', 'term-1', 'clsf')
-        with self.assertRaises(KeyError):
+        with self.assertRaises(AttributeError):
             unit[99] = 1
 
     def test11_raise(self):
