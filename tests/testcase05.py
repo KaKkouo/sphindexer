@@ -4,13 +4,13 @@ from docutils.nodes import Text as txt
 from src import rack
 
 head01 = "<IndexEntry: entry_type='single'"
-attr01 = "main='main' file_name='doc1' target='term-1' index_key='key'"
+attr01 = "main file_name='doc1' target='term-1' index_key='key'"
 repr01 = f"{head01} {attr01} <#text: 'sphinx'>>"
 
 repr010 = "<IndexUnit: main file_name='doc1' target='term-1' <#text: ''><#text: 'sphinx'>>"
 
 head02 = "<IndexEntry: entry_type='single'"
-attr02 = "main='main' file_name='doc1' target='term-1' index_key='key'"
+attr02 = "main file_name='doc1' target='term-1' index_key='key'"
 repr02 = f"{head02} {attr02} <#text: 'sphinx'><#text: 'python'>>"
 
 head020 = "<IndexUnit: main file_name='doc1' target='term-1'"
@@ -18,7 +18,7 @@ pack020 = "<Subterm: len=1 <#text: 'python'>>"
 repr020 = f"{head020} <#text: ''><#text: 'sphinx'>{pack020}>"
 
 head03 = "<IndexEntry: entry_type='pair'"
-attr03 = "main='main' file_name='doc1' target='term-1' index_key='key'"
+attr03 = "main file_name='doc1' target='term-1' index_key='key'"
 repr03 = f"{head03} {attr03} <#text: 'sphinx'><#text: 'python'>>"
 
 head030 = "<IndexUnit: main file_name='doc1' target='term-1'"
@@ -30,7 +30,7 @@ pack031 = "<Subterm: len=1 <#text: 'sphinx'>>"
 repr031 = f"{head031} <#text: ''><#text: 'python'>{pack031}>"
 
 head04 = "<IndexEntry: entry_type='triple'"
-attr04 = "main='main' file_name='doc1' target='term-1' index_key='key'"
+attr04 = "main file_name='doc1' target='term-1' index_key='key'"
 repr04 = f"{head04} {attr04} <#text: 'docutils'><#text: 'sphinx'><#text: 'python'>>"
 
 head040 = "<IndexUnit: main file_name='doc1' target='term-1'"
@@ -46,7 +46,7 @@ pack042 = "<Subterm: len=2 <#text: 'docutils'><#text: 'sphinx'>>"
 repr042 = f"{head042} <#text: ''><#text: 'python'>{pack042}>"
 
 head05 = "<IndexEntry: entry_type='see'"
-attr05 = "main='main' file_name='doc1' target='term-1' index_key='key'"
+attr05 = "main file_name='doc1' target='term-1' index_key='key'"
 repr05 = f"{head05} {attr05} <#text: 'sphinx'><#text: 'python'>>"
 
 head050 = "<IndexUnit: main file_name='doc1' target='term-1'"
@@ -54,7 +54,7 @@ pack050 = "<Subterm: len=1 tpl='see %s' <#text: 'python'>>"
 repr050 = f"{head050} <#text: ''><#text: 'sphinx'>{pack050}>"
 
 head06 = "<IndexEntry: entry_type='seealso'"
-attr06 = "main='main' file_name='doc1' target='term-1' index_key='key'"
+attr06 = "main file_name='doc1' target='term-1' index_key='key'"
 repr06 = f"{head06} {attr06} <#text: 'sphinx'><#text: 'python'>>"
 
 head060 = "<IndexUnit: main file_name='doc1' target='term-1'"
@@ -62,13 +62,13 @@ pack060 = "<Subterm: len=1 tpl='see also %s' <#text: 'python'>>"
 repr060 = f"{head060} <#text: ''><#text: 'sphinx'>{pack060}>"
 
 head07 = "<IndexEntry: entry_type='list'"
-attr07 = "main='main' file_name='doc1' target='term-1' index_key='key'"
+attr07 = "main file_name='doc1' target='term-1' index_key='key'"
 repr07 = f"{head07} {attr07} <#text: 'docutils'><#text: 'sphinx'><#text: 'python'>>"
 
 repr070 = "<IndexUnit: main file_name='doc1' target='term-1' <#text: ''><#text: 'docutils'>>"
 
 head08 = "<IndexEntry: entry_type='foobar'"
-attr08 = "main='main' file_name='doc1' target='term-1' index_key='key'"
+attr08 = "main file_name='doc1' target='term-1' index_key='key'"
 repr08 = f"{head08} {attr08} <#text: 'docutils'><#text: 'sphinx'><#text: 'python'>>"
 
 repr080 = "<IndexUnit: main file_name='doc1' target='term-1' <#text: ''><#text: 'docutils'>>"
