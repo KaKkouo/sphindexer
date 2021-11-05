@@ -504,7 +504,3 @@ class IndexRack(nodes.Element):
 
 
 # ------------------------------------------------------------
-
-if __name__ in ('__main__', 'src.rack'):
-    import doctest
-    doctest.testmod()
