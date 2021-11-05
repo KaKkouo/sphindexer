@@ -22,7 +22,7 @@ from . import rack
 __copyright__ = 'Copyright (C) 2021 @koKekkoh'
 __license__   = 'BSD 2-Clause License'
 __author__    = '@koKekkoh'
-__version__   = '0.7.0'  # 2021-11-04
+__version__   = '0.8.0'  # 2021-11-04
 __url__       = 'https://github.com/KaKkouo/sphindexer'
 
 logger = logging.getLogger(__name__)
