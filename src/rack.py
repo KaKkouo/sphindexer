@@ -318,10 +318,10 @@ class IndexRack(nodes.Element):
 
     def put_in_classifier_catalog(self, index_key, word):
         if not index_key: return
-        if not word: return
+        if not word: raise ValueError(repr(self))
 
         if word not in self._classifier_catalog:
-            # 上書きはしない.（∵「make clean」での状況を真とするため）
+            # No overwriting. (To make the situation in "make clean" true)
             self._classifier_catalog[word] = index_key
 
     def put_in_function_catalog(self, texts, _fixre):
