@@ -3,29 +3,6 @@ import unittest
 from src import IndexRack
 from . import util 
 
-testcase01i = {
-'doc1': [ ('single','func1() (aaa module)','id-111','',None), ]
-}
-
-testcase01o = [
-('F',
-  [('func1() (aaa module)', [[('', 'doc1.html#id-111')], [], None])])
-]
-
-
-testcase02i = {
-'doc1': [ ('single','func1() (doc1 module)','id-211','',None),],
-'doc2': [ ('single','func1() (doc2 module)','id-221','',None),],
-}
-
-testcase02o = [
-('F',
-  [('func1()',
-    [[],
-     [('(doc1 module)', [('', 'doc1.html#id-211')]),
-      ('(doc2 module)', [('', 'doc2.html#id-221')])],
-     None])])
-]
 
 testcase03i = {
 'doc1': [ ('single','func1() (bbbb module)','id-311','',None),],
@@ -140,18 +117,34 @@ testcase08o = [
 
 class testIndexEntries(unittest.TestCase):
     def test01_function_catalog(self):
-        self.maxDiff = None
-        env = util.env(testcase01i)
+        testcase = {
+            'doc1': [ ('single','func1() (aaa module)','id-111','',None), ]
+        }
+        env = util.env(testcase)
         bld = util.builder(env)
         gidx = util.IndexEntries(env).create_index(bld)
-        self.assertEqual(gidx, testcase01o)
+        self.assertEqual(len(gidx), 1)
+        self.assertEqual(gidx[0][0], 'F')
+        self.assertEqual(
+            gidx[0][1], 
+            [('func1() (aaa module)', [[('', 'doc1.html#id-111')], [], None])])
 
     def test02_function_catalog(self):
-        self.maxDiff = None
-        env = util.env(testcase02i)
+        testcase = {
+            'doc1': [ ('single','func1() (doc1 module)','id-211','',None),],
+            'doc2': [ ('single','func1() (doc2 module)','id-221','',None),],
+        }
+        env = util.env(testcase)
         bld = util.builder(env)
         gidx = util.IndexEntries(env).create_index(bld)
-        self.assertEqual(gidx, testcase02o)
+        self.assertEqual(len(gidx), 1)
+        self.assertEqual(gidx[0][0], 'F')
+        self.assertEqual(
+            gidx[0][1], 
+            [('func1()', [[],
+                          [('(doc1 module)', [('', 'doc1.html#id-211')]),
+                           ('(doc2 module)', [('', 'doc2.html#id-221')])],
+                          None])])
 
     def test03_function_catalog(self):
         self.maxDiff = None
@@ -194,6 +187,21 @@ class testIndexEntries(unittest.TestCase):
         bld = util.builder(env)
         gidx = util.IndexEntries(env).create_index(bld)
         self.assertEqual(gidx, testcase08o)
+
+    def test09_function_catalog(self):
+        testcase = {
+            'doc1': [ ('single','func1() (doc1 module)','id-211','',None),],
+            'doc2': [ ('single','func1() (doc2 module)','id-221','',None),],
+        }
+        env = util.env(testcase)
+        bld = util.builder(env)
+        gidx = util.IndexEntries(env).create_index(bld, False)
+        self.assertEqual(len(gidx), 1)
+        self.assertEqual(gidx[0][0], 'F')
+        self.assertEqual(
+            gidx[0][1], 
+            [('func1() (doc1 module)', [[('', 'doc1.html#id-211')], [], None]),
+             ('func1() (doc2 module)', [[('', 'doc2.html#id-221')], [], None])])
 
 #-------------------------------------------------------------------
 

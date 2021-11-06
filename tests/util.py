@@ -33,8 +33,8 @@ class IndexEntries(IndexRack):
         self.env = env
         self._kana_catalog = {}
         super().__init__(builder(env))
-    def create_index(self, builder):
+    def create_index(self, builder, group_entries = True):
         self.builder = builder
         self.config = builder.config
         self.get_relative_uri = builder.get_relative_uri
-        return super().create_index()
+        return super().create_index(group_entries)
