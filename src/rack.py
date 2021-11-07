@@ -24,19 +24,21 @@ logger = logging.getLogger(__name__)
 
 # ------------------------------------------------------------
 
+def chop_mark(rawtext):
+    text = normalize('NFD', rawtext)
+    if text.startswith('\N{RIGHT-TO-LEFT MARK}'):
+        text = text[1:]
+    return text
 
-class ExtText(nodes.Text):
+class Text(nodes.Text):
+
+    whatiam = 'term'
+
     def assort(self):
-        text = normalize('NFD', self)
+        text = chop_mark(self)
 
-        try:
-            if self.whatiam == 'classifier' and text == _('Symbols'):
-                return (0, text)
-        except AttributeError:
-            pass
-
-        if text.startswith('\N{RIGHT-TO-LEFT MARK}'):
-            text = text[1:]
+        if self.whatiam == 'classifier' and text == _('Symbols'):
+            return (0, text)
 
         if text[0].upper().isalpha() or text.startswith('_'):
             return (1, text.upper())
@@ -173,7 +175,7 @@ class IndexEntry(Represent, nodes.Element):
 
     other_entry_types = ('list')
 
-    textclass = ExtText
+    textclass = Text
     packclass = Subterm
     unitclass = IndexUnit
 
@@ -290,7 +292,7 @@ class IndexRack(nodes.Element):
     5. self.generate_genindex_data()  Generating data for genindex.
     """
 
-    textclass = ExtText
+    textclass = Text
     packclass = Subterm
     unitclass = IndexUnit
     entryclass = IndexEntry
@@ -370,10 +372,6 @@ class IndexRack(nodes.Element):
                 pass
 
     def make_classifier_from_first_letter(self, text):
-        text = normalize('NFD', text)
-        if text.startswith('\N{RIGHT-TO-LEFT MARK}'):
-            text = text[1:]
-
         if text[0].upper().isalpha() or text.startswith('_'):
             return text[0].upper()
         else:
@@ -403,16 +401,15 @@ class IndexRack(nodes.Element):
 
         # Important: The order in which if/elif decisions are made.
         if ikey:
-            _key, _raw = ikey, ikey
+            _key, _raw = chop_mark(ikey), ikey
         elif word in self._classifier_catalog:
-            _key, _raw = self._classifier_catalog[word], word
+            _key, _raw = chop_mark(self._classifier_catalog[word]), word
         else:
-            _key, _raw = self.make_classifier_from_first_letter(term.astext()), term.astext()
+            _key = chop_mark(term.astext())
+            _key, _raw = self.make_classifier_from_first_letter(_key), term.astext()
 
-        clsf = self.textclass(_key, _raw)
-        clsf.whatiam = 'classifier'
-
-        unit[UNIT_CLSF] = clsf
+        unit[UNIT_CLSF] = self.textclass(_key, _raw)
+        unit[UNIT_CLSF].whatiam = 'classifier'
 
     def update_unit_with_function_catalog(self, unit):
         """
