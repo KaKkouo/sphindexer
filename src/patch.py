@@ -12,6 +12,32 @@ logger = logging.getLogger(__name__)
 
 # ------------------------------------------------------------
 
+
+class TextElement(nodes.Element):
+
+    child_text_separator = ''
+    """Separator for child nodes, used by `astext()` method."""
+
+    textclass = nodes.Text
+
+    def __init__(self, rawsource='', text='', *children, **attributes):
+        if text != '':
+            textnode = self.textclass(text)
+            super().__init__(rawsource, textnode, *children, **attributes)
+        else:
+            super().__init__(rawsource, *children, **attributes)
+
+
+class term(nodes.Part, TextElement): pass
+
+
+# ------------------------------------------------------------
+
+
+
+
+# ------------------------------------------------------------
+
 class XRefIndex(IndexRole):
     """
     based on
