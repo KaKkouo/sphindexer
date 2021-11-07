@@ -14,12 +14,34 @@ from sphinx.locale import _, __
 from sphinx.util import logging
 
 # Update separately from the package version, since 2021-11-07
-__version__ = "1.0.20211107"
+__version__ = "2.0.20211108"
 # x.y.YYYYMMDD[.HHMI]
 # - x: changes that need to be addressed by the user.
 # - y: changes that do not require a response from the user.
 
 logger = logging.getLogger(__name__)
+
+
+# ------------------------------------------------------------
+
+
+class ExtText(nodes.Text):
+    def assort(self):
+        text = normalize('NFD', self)
+
+        try:
+            if self.whatiam == 'classifier' and text == _('Symbols'):
+                return (0, text)
+        except AttributeError:
+            pass
+
+        if text.startswith('\N{RIGHT-TO-LEFT MARK}'):
+            text = text[1:]
+
+        if text[0].upper().isalpha() or text.startswith('_'):
+            return (1, text.upper())
+        else:
+            return (0, text.upper())
 
 
 # ------------------------------------------------------------
@@ -74,6 +96,13 @@ class Subterm(Represent, nodes.Element):
         for subterm in self:
             text += subterm.astext() + self['delimiter']
         return text[:-len(self['delimiter'])]
+    
+    def assort(self):
+        try:
+            s = self[0].assort()
+            return (s[0], self.astext())
+        except IndexError:
+            return (0, '')
 
 
 # ------------------------------------------------------------
@@ -89,11 +118,10 @@ class IndexUnit(Represent, nodes.Element):
     def __init__(self, term, subterm, link_type, main, file_name, target, index_key):
 
         super().__init__(repr(term)+repr(subterm),  # rawsource used for debug.
-                         self.textclass(''), term, subterm, link_type=link_type,
+                         nodes.Text(''), term, subterm, link_type=link_type,
                          main=main, file_name=file_name, target=target, index_key=index_key)
-
-    def textclass(self, rawword, rawsource=""):
-        return nodes.Text(rawword, rawsource)
+        # Text is used to avoid errors in Element.__init__.
+        # Since it is always overwritten in IndexRack, consideration for extensibility isn't needed. 
 
     def __repr__(self, attr=""):
         if self['main']: attr += f"main "
@@ -145,7 +173,7 @@ class IndexEntry(Represent, nodes.Element):
 
     other_entry_types = ('list')
 
-    textclass = nodes.Text
+    textclass = ExtText
     packclass = Subterm
     unitclass = IndexUnit
 
@@ -262,7 +290,7 @@ class IndexRack(nodes.Element):
     5. self.generate_genindex_data()  Generating data for genindex.
     """
 
-    textclass = nodes.Text
+    textclass = ExtText
     packclass = Subterm
     unitclass = IndexUnit
     entryclass = IndexEntry
@@ -412,28 +440,13 @@ class IndexRack(nodes.Element):
 
             unit[UNIT_SBTM] = self.packclass(unit['link_type'], term)
 
-    def for_sort(self, term):
-        text = term.astext()
-        if text == _('Symbols'):
-            return (0, text)
-
-        text = normalize('NFD', text.lower())
-        if text.startswith('\N{RIGHT-TO-LEFT MARK}'):
-            text = text[1:]
-
-        if text[0:1].isalpha() or text.startswith('_'):
-            return (1, text)
-        else:
-            # symbol
-            return (0, text)
-
     def sort_units(self):
         self._rack.sort(key=lambda unit: (
-            self.for_sort(unit[UNIT_CLSF]),  # classifier
-            self.for_sort(unit[UNIT_TERM]),  # primary term
-            unit['link_type'],               # 1:'see', 2:'seealso', 3:'uri'. see Convert.
-            self.for_sort(unit[UNIT_SBTM]),  # secondary term
-            unit['main'],                    # 3:'main', 4:''. see Convert.
+            unit[UNIT_CLSF].assort(),  # classifier
+            unit[UNIT_TERM].assort(),  # primary term
+            unit['link_type'],  # see Convert. 1:'see', 2:'seealso', 3:'uri'.
+            unit[UNIT_SBTM].assort(),  # secondary term
+            unit['main'],       # see Convert. 3:'main', 4:''.
             unit['file_name'],
             unit['target']), )
         # about x['file_name'], x['target'].
