@@ -338,7 +338,7 @@ class IndexRack(nodes.Element):
         Gather information for the update process, which will be determined by looking at all units.
         """
         # Gather information.
-        self.put_in_classifier_catalog(unit['index_key'], self.get_word(unit[UNIT_TERM]))
+        self.put_in_classifier_catalog(unit['index_key'], unit[UNIT_TERM].astext())
         unit[UNIT_TERM].whatiam = 'term'
 
         # Gather information.
@@ -371,12 +371,6 @@ class IndexRack(nodes.Element):
             else:
                 pass
 
-    def make_classifier_from_first_letter(self, text):
-        if text[0].upper().isalpha() or text.startswith('_'):
-            return text[0].upper()
-        else:
-            return _('Symbols')
-
     def update_units(self):
         """Update with the catalog."""
 
@@ -390,14 +384,11 @@ class IndexRack(nodes.Element):
             # Set the classifier.
             self.update_unit_with_classifier_catalog(unit)
 
-    def get_word(self, term):
-        return term.astext()
-
     def update_unit_with_classifier_catalog(self, unit):
 
         ikey = unit['index_key']
         term = unit[UNIT_TERM]
-        word = self.get_word(term)
+        word = term.astext()
 
         # Important: The order in which if/elif decisions are made.
         if ikey:
@@ -410,6 +401,12 @@ class IndexRack(nodes.Element):
 
         unit[UNIT_CLSF] = self.textclass(_key, _raw)
         unit[UNIT_CLSF].whatiam = 'classifier'
+
+    def make_classifier_from_first_letter(self, text):
+        if text[0].upper().isalpha() or text.startswith('_'):
+            return text[0].upper()
+        else:
+            return _('Symbols')
 
     def update_unit_with_function_catalog(self, unit):
         """
