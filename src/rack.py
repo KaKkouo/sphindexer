@@ -14,7 +14,7 @@ from sphinx.locale import _, __
 from sphinx.util import logging
 
 # Update separately from the package version, since 2021-11-07
-__version__ = "2.1.20211108"
+__version__ = "1.4.20211108"
 # x.y.YYYYMMDD[.HHMI]
 # - x: changes that need to be addressed by the user.
 # - y: changes that do not require a response from the user.
@@ -24,11 +24,22 @@ logger = logging.getLogger(__name__)
 
 # ------------------------------------------------------------
 
+
 def chop_mark(rawtext):
     text = normalize('NFD', rawtext)
     if text.startswith('\N{RIGHT-TO-LEFT MARK}'):
         text = text[1:]
     return text
+
+
+def sort_key(text):
+    if not text:
+        return (0, '')
+    elif text[0].upper().isalpha() or text.startswith('_'):
+        return (1, text.upper())
+    else:
+        return (0, text.upper())
+
 
 class Text(nodes.Text):
 
@@ -40,11 +51,7 @@ class Text(nodes.Text):
         if self.whatiam == 'classifier' and text == _('Symbols'):
             return (0, text)
 
-        if text[0].upper().isalpha() or text.startswith('_'):
-            return (1, text.upper())
-        else:
-            return (0, text.upper())
-
+        return sort_key(text)
 
 # ------------------------------------------------------------
 
@@ -98,13 +105,10 @@ class Subterm(Represent, nodes.Element):
         for subterm in self:
             text += subterm.astext() + self['delimiter']
         return text[:-len(self['delimiter'])]
-    
+
     def assort(self):
-        try:
-            s = self[0].assort()
-            return (s[0], self.astext())
-        except IndexError:
-            return (0, '')
+        text = chop_mark(self.astext())
+        return sort_key(text)
 
 
 # ------------------------------------------------------------
@@ -123,7 +127,7 @@ class IndexUnit(Represent, nodes.Element):
                          nodes.Text(''), term, subterm, link_type=link_type,
                          main=main, file_name=file_name, target=target, index_key=index_key)
         # Text is used to avoid errors in Element.__init__.
-        # Since it is always overwritten in IndexRack, consideration for extensibility isn't needed. 
+        # Since it is always overwritten in IndexRack, consideration for extensibility isn't needed.
 
     def __repr__(self, attr=""):
         if self['main']: attr += f"main "
@@ -426,6 +430,7 @@ class IndexRack(nodes.Element):
             unit[UNIT_SBTM] = self.packclass(unit['link_type'], term)
 
     def sort_units(self):
+        """What is done in Text is done in Text, and what is done in IndexUnit is done in IndexUnit."""
         self._rack.sort(key=lambda unit: (
             unit[UNIT_CLSF].assort(),  # classifier
             unit[UNIT_TERM].assort(),  # primary term
