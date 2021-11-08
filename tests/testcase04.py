@@ -49,7 +49,8 @@ class testIndexUnit(unittest.TestCase):
     def test06_set_sbtm_delimiter(self):
         pack = rack.Subterm(main, txt('sphinx'), txt('python'))
         unit = rack.IndexUnit(txt('docutils'), pack, '2', main, 'doc1', 'term-1', 'clsf')
-        self.assertEqual(['docutils', 'sphinx', 'python'], unit.astexts())
+        #self.assertEqual(['docutils', 'sphinx', 'python'], unit.astexts())
+        self.assertEqual('sphinx python', unit[2].astext())
         unit.set_subterm_delimiter()
         self.assertEqual('sphinx, python', unit[2].astext())
 
