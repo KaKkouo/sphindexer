@@ -14,7 +14,7 @@ from sphinx.locale import _, __
 from sphinx.util import logging
 
 # Update separately from the package version, since 2021-11-07
-__version__ = "2.0.20211108"
+__version__ = "2.1.20211108"
 # x.y.YYYYMMDD[.HHMI]
 # - x: changes that need to be addressed by the user.
 # - y: changes that do not require a response from the user.
@@ -133,14 +133,6 @@ class IndexUnit(Represent, nodes.Element):
 
     def set_subterm_delimiter(self, delimiter=', '):
         self[UNIT_SBTM]['delimiter'] = delimiter
-
-    def astexts(self):
-        texts = [self[UNIT_TERM].astext()]
-
-        for subterm in self[UNIT_SBTM]:
-            texts.append(subterm.astext())
-
-        return texts
 
 
 # ------------------------------------------------------------
@@ -343,7 +335,7 @@ class IndexRack(nodes.Element):
 
         # Gather information.
         if self._group_entries:
-            self.put_in_function_catalog(unit.astexts(), self._fixre)
+            self.put_in_function_catalog(unit[UNIT_TERM].astext(), self._fixre)
 
         # Put the unit on the rack.
         self._rack.append(unit)
@@ -360,16 +352,15 @@ class IndexRack(nodes.Element):
             # No overwriting. (To make the situation in "make clean" true)
             self._classifier_catalog[word] = index_key
 
-    def put_in_function_catalog(self, texts, _fixre):
-        for text in texts:
-            m = _fixre.match(text)
-            if m:
-                try:
-                    self._function_catalog[m.group(1)] += 1
-                except KeyError:
-                    self._function_catalog[m.group(1)] = 1
-            else:
-                pass
+    def put_in_function_catalog(self, text, _fixre):
+        m = _fixre.match(text)
+        if m:
+            try:
+                self._function_catalog[m.group(1)] += 1
+            except KeyError:
+                self._function_catalog[m.group(1)] = 1
+        else:
+            pass
 
     def update_units(self):
         """Update with the catalog."""
