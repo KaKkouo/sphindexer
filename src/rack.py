@@ -335,7 +335,7 @@ class IndexRack(nodes.Element):
 
         # Gather information.
         if self._group_entries:
-            self.put_in_function_catalog(unit[UNIT_TERM].astext(), self._fixre)
+            self.put_in_function_catalog(unit, self._fixre)
 
         # Put the unit on the rack.
         self._rack.append(unit)
@@ -352,8 +352,8 @@ class IndexRack(nodes.Element):
             # No overwriting. (To make the situation in "make clean" true)
             self._classifier_catalog[word] = index_key
 
-    def put_in_function_catalog(self, text, _fixre):
-        m = _fixre.match(text)
+    def put_in_function_catalog(self, unit, _fixre):
+        m = _fixre.match(unit[UNIT_TERM].astext())
         if m:
             try:
                 self._function_catalog[m.group(1)] += 1
