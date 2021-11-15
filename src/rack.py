@@ -16,7 +16,7 @@ from sphinx.locale import _, __
 from sphinx.util import logging
 
 # Update separately from the package version, since 2021-11-07
-__version__ = "2.0.20211114"
+__version__ = "3.0.20211116"
 # x.y.YYYYMMDD[.HHMI]
 # - x: changes that need to be addressed by the user.
 # - y: changes that do not require a response from the user.
@@ -122,7 +122,10 @@ class Subterm(Represent, Character, nodes.Element):
 
     def __eq__(self, other):
         """unittest、IndexRack.generate_genindex_data."""
-        return self.astext() == other
+        try:
+            return self.astext() == other.astext()
+        except AttributeError:
+            return self.astext() == other
 
     def astext(self):
         if self['template'] and len(self) == 1:
@@ -473,8 +476,7 @@ class IndexRack(Convert, Character, nodes.Element):
             i_tid = unit['target']
             i_iky = unit['index_key']
 
-            # see: KanaText.__eq__
-            if len(rtnlist) == 0 or not rtnlist[_clf][0] == i_clf.astext():
+            if len(rtnlist) == 0 or not rtnlist[_clf][0] == i_clf:
                 # Enter a clsssifier.
                 rtnlist.append((i_clf, []))
 
@@ -486,8 +488,7 @@ class IndexRack(Convert, Character, nodes.Element):
             # r_clfnm = r_clsfr[0]   # classifier is KanaText object.
             r_terms = r_clsfr[1]     # [term, term, ..]
 
-            # see: KanaText.__eq__
-            if len(r_terms) == 0 or not r_terms[_tm][0] == i_tm.astext():
+            if len(r_terms) == 0 or not r_terms[_tm][0] == i_tm:
                 # Enter a term.
                 r_terms.append((i_tm, [[], [], i_iky]))
 
@@ -519,7 +520,7 @@ class IndexRack(Convert, Character, nodes.Element):
             if len(i_sub) == 0:
                 if r_uri:
                     r_term_links.append((r_main, r_uri))
-            elif len(r_subterms) == 0 or not r_subterms[_sub][0] == i_sub.astext():
+            elif len(r_subterms) == 0 or not r_subterms[_sub][0] == i_sub:
                 # Enter a subterm.
                 r_subterms.append((i_sub, []))
 
