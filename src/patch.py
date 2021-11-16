@@ -44,8 +44,7 @@ class XRefIndex(IndexRole):
     https://github.com/sphinx-doc/sphinx/blob/4.x/sphinx/domains/index.py
     """
 
-    def textclass(sefl, text, rawtext):
-        return nodes.Text(text, rawtext)
+    textclass = nodes.Text
 
     def run(self) -> Tuple[List[nodes.Node], List[nodes.system_message]]:
         target_id = 'index-%s' % self.env.new_serialno('index')
