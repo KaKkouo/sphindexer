@@ -14,7 +14,7 @@ from . import rack, patch as pch, glossary as gl
 __copyright__ = 'Copyright (C) 2021 @koKekkoh'
 __license__   = 'BSD 2-Clause License'
 __author__    = '@koKekkoh'
-__version__   = '0.11.0.dev0'  # 2021-11-16
+__version__   = '0.11.0.dev1'  # 2021-11-16
 __url__       = 'https://github.com/KaKkouo/sphindexer'
 
 # ------------------------------------------------------------
@@ -49,7 +49,7 @@ class HTMLBuilder(pch.BaseHTMLBuilder):
 def setup(app) -> Dict[str, Any]:
 
     app.add_builder(HTMLBuilder)
-    app.add_directive('glossary', Glossary, True)
+    app.add_directive('glossary', Glossary)
 
     return {'version': __version__,
             'parallel_read_safe': True,

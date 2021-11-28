@@ -4,6 +4,8 @@ from docutils.parsers.rst.states import Inliner
 from sphinx.application import Sphinx
 from sphinx.errors import SphinxError
 
+from src.glossary import BaseGlossary
+
 #-------------------------------------------------------------------
 
 inliner = Inliner()
@@ -16,6 +18,7 @@ distdir = workdir + '/out'
 class testBuilder(unittest.TestCase):
     def test01_build(self):
         application = Sphinx(workdir, workdir, distdir, distdir, "idxr")
+        application.add_directive('glossary', BaseGlossary, True)
         bld = application.builder
 
         with self.assertRaises(AttributeError):

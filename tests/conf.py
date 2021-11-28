@@ -5,10 +5,9 @@ project = 'Sphindexer Testcase'
 copyright = '2021, @KoKekkoh'
 author = 'Kakkouo, KoKekkoh'
 
-release = '0.2.0'
-
-extensions = ['src']
-templates_path = ['_templates']
+release = '0.11.0'
 language = 'ja'
+
 exclude_patterns = []
+extensions = ['src']
 templates_path = ['_templates']
