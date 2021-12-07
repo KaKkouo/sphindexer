@@ -114,8 +114,8 @@ class BaseGlossary(SphinxDirective):
                 textnodes, sysmsg = self.inline_text(parts[0], lineno)
 
                 # use first classifier as a index key
-                #if classifier and not parts[1]:
-                #    parts[1] = classifier
+                if classifier and not parts[1]:
+                    parts[1] = classifier
                 term = self.make_glossary_term(textnodes, parts[1], source, lineno,
                                                node_id=None, document=self.state.document)
                 term.rawsource = line

@@ -6,7 +6,6 @@ Sphindexer Project
 this is a rst file for test.
 
 .. glossary::
-   :classifier: overview
    :sorted:
 
    Sphinx
