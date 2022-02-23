@@ -4,7 +4,7 @@ from docutils.parsers.rst.states import Inliner
 from sphinx.application import Sphinx
 from sphinx.errors import SphinxError
 
-from src.glossary import BaseGlossary
+from src.std import Glossary
 
 #-------------------------------------------------------------------
 
@@ -23,7 +23,7 @@ class testBuilder(unittest.TestCase):
         with self.assertRaises(AttributeError):
             bld.write_genindex()
 
-        application.add_directive_to_domain('std', 'glossary', BaseGlossary, True)
+        application.add_directive_to_domain('std', 'glossary', Glossary, True)
         application.build(False, ['tests/index.rst'])
         bld.config.html_split_index = True
         bld.write_genindex()
