@@ -324,9 +324,6 @@ class Glossary(SphinxDirective):
     }
 
     def run(self) -> List[Node]:
-        node = addnodes.glossary()
-        node.document = self.state.document
-        node['sorted'] = ('sorted' in self.options)
 
         # This directive implements a custom format of the reST definition list
         # that allows multiple lines of terms before the definition.  This is
@@ -403,6 +400,7 @@ class Glossary(SphinxDirective):
     def make_glossary(self, entries):
         node = addnodes.glossary()
         node.document = self.state.document
+        node['sorted'] = ('sorted' in self.options)
         classifier = self.options.get('classifier')
 
         items: List[nodes.definition_list_item] = []
