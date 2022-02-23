@@ -9,12 +9,12 @@ A Sphinx Indexer.
 
 from typing import Any, Dict, List, Tuple
 
-from . import rack, patch as pch, glossary as gl
+from . import rack, patch as pch, std as gl
 
 __copyright__ = 'Copyright (C) 2021 @koKekkoh'
 __license__   = 'BSD 2-Clause License'
 __author__    = '@koKekkoh'
-__version__   = '0.11.0'  # 2021-12-08
+__version__   = '0.12.0dev1'  # 2022-02-24
 __url__       = 'https://github.com/KaKkouo/sphindexer'
 
 # ------------------------------------------------------------
@@ -29,7 +29,7 @@ class IndexRack(rack.IndexRack): pass
 # ------------------------------------------------------------
 
 
-class Glossary(gl.BaseGlossary): pass
+class Glossary(gl.Glossary): pass
 
 
 class XRefIndex(pch.XRefIndex): pass
