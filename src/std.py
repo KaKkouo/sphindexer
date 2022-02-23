@@ -1,5 +1,4 @@
 import re
-import unicodedata
 import warnings
 from copy import copy
 from typing import (TYPE_CHECKING, Any, Callable, Dict, Iterable, Iterator, List, Optional,
@@ -233,7 +232,7 @@ class Cmdoption(ObjectDescription[str]):
             descr = _('%s command line option') % currprogram
         else:
             descr = _('command line option')
-        for option in sig.split(', '):
+        for option in signode.get('allnames', []):
             entry = '; '.join([descr, option])
             self.indexnode['entries'].append(('pair', entry, signode['ids'][0], '', None))
 
@@ -325,6 +324,9 @@ class Glossary(SphinxDirective):
     }
 
     def run(self) -> List[Node]:
+        node = addnodes.glossary()
+        node.document = self.state.document
+        node['sorted'] = ('sorted' in self.options)
 
         # This directive implements a custom format of the reST definition list
         # that allows multiple lines of terms before the definition.  This is
@@ -403,9 +405,8 @@ class Glossary(SphinxDirective):
         node.document = self.state.document
         classifier = self.options.get('classifier')
 
-        items = []
+        items: List[nodes.definition_list_item] = []
         for terms, definition in entries:
-            termtexts: List[str] = []
             termnodes: List[Node] = []
             system_messages: List[Node] = []
             for line, source, lineno in terms:
@@ -421,7 +422,6 @@ class Glossary(SphinxDirective):
                                                node_id=None, document=self.state.document)
                 term.rawsource = line
                 system_messages.extend(sysmsg)
-                termtexts.append(term.astext())
                 termnodes.append(term)
 
             termnodes.extend(system_messages)
@@ -431,16 +431,10 @@ class Glossary(SphinxDirective):
                 self.state.nested_parse(definition, definition.items[0][1],
                                         defnode)
             termnodes.append(defnode)
-            items.append((termtexts,
-                          nodes.definition_list_item('', *termnodes)))
+            items.append(nodes.definition_list_item('', *termnodes))
 
-        if 'sorted' in self.options:
-            items.sort(key=lambda x:
-                       unicodedata.normalize('NFD', x[0][0].lower()))
-
-        dlist = nodes.definition_list()
+        dlist = nodes.definition_list('', *items)
         dlist['classes'].append('glossary')
-        dlist.extend(item[1] for item in items)
         node += dlist
         return [node]
 
@@ -775,18 +769,20 @@ class StandardDomain(Domain):
                 sectname = clean_astext(title)
             elif node.tagname == 'rubric':
                 sectname = clean_astext(node)
+            elif node.tagname == 'target' and len(node) > 0:
+                # inline target (ex: blah _`blah` blah)
+                sectname = clean_astext(node)
             elif self.is_enumerable_node(node):
                 sectname = self.get_numfig_title(node)
-                if not sectname:
-                    continue
             else:
-                toctree = next(iter(node.traverse(addnodes.toctree)), None)
+                toctree = next(node.findall(addnodes.toctree), None)
                 if toctree and toctree.get('caption'):
                     sectname = toctree.get('caption')
                 else:
                     # anonymous-only labels
                     continue
-            self.labels[name] = docname, labelid, sectname
+            if sectname:
+                self.labels[name] = docname, labelid, sectname
 
     def add_program_option(self, program: str, name: str, docname: str, labelid: str) -> None:
         self.progoptions[program, name] = (docname, labelid)
