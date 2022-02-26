@@ -62,8 +62,8 @@ class Convert(object):
 
     _type_to_link = {'see': 1, 'seealso': 2, 'uri': 3}
 
-    _main_to_code = {'conf.py': 1, 'rcfile': 2, 'main': 3, '': 4}
-    _code_to_main = {1: 'conf.py', 2: 'rcfile', 3: 'main', 4: ''}
+    _main_to_code = {'main': 1, '': 2}
+    _code_to_main = {1: 'main', 2: ''}
 
     def type2link(self, link):
         return self._type_to_link[link]
