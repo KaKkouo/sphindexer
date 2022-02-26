@@ -16,7 +16,7 @@ from sphinx.locale import _, __
 from sphinx.util import logging
 
 # Update separately from the package version, since 2021-11-07
-__version__ = "3.1.20211116"
+__version__ = "3.2.20220227"
 # x.y.YYYYMMDD[.HHMI]
 # - x: changes that need to be addressed by the user.
 # - y: changes that do not require a response from the user.
@@ -60,19 +60,19 @@ class Represent(object):
 
 class Convert(object):
 
-    _type_to_link = {'see': 1, 'seealso': 2, 'uri': 3}
+    type_to_link = {'see': 1, 'seealso': 2, 'uri': 3}
 
-    _main_to_code = {'main': 1, '': 2}
-    _code_to_main = {1: 'main', 2: ''}
+    main_to_code = {'main': 1, '': 2}
+    code_to_main = {1: 'main', 2: ''}
 
     def type2link(self, link):
-        return self._type_to_link[link]
+        return self.type_to_link[link]
 
     def main2code(self, main):
-        return self._main_to_code[main]
+        return self.main_to_code[main]
 
     def code2main(self, code):
-        return self._code_to_main[code]
+        return self.code_to_main[code]
 
 
 # ------------------------------------------------------------

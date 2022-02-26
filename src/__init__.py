@@ -14,7 +14,7 @@ from . import rack, patch as pch, std as gl
 __copyright__ = 'Copyright (C) 2021 @koKekkoh'
 __license__   = 'BSD 2-Clause License'
 __author__    = '@koKekkoh'
-__version__   = '0.12.1b1'  # 2022-02-27
+__version__   = '0.12.1b2'  # 2022-02-27
 __url__       = 'https://github.com/KaKkouo/sphindexer'
 
 # ------------------------------------------------------------
