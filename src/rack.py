@@ -60,19 +60,19 @@ class Represent(object):
 
 class Convert(object):
 
-    type_to_link = {'see': 1, 'seealso': 2, 'uri': 3}
+    _type_to_link = {'see': 1, 'seealso': 2, 'uri': 3}
 
-    main_to_code = {'main': 1, '': 2}
-    code_to_main = {1: 'main', 2: ''}
+    _main_to_code = {'main': 1, '': 2}
+    _code_to_main = {1: 'main', 2: ''}
 
-    def type2link(self, link):
-        return self.type_to_link[link]
+    def _type2link(self, link):
+        return self._type_to_link[link]
 
-    def main2code(self, main):
-        return self.main_to_code[main]
+    def _main2code(self, main):
+        return self._main_to_code[main]
 
-    def code2main(self, code):
-        return self.code_to_main[code]
+    def _code2main(self, code):
+        return self._code_to_main[code]
 
 
 # ------------------------------------------------------------
@@ -246,11 +246,11 @@ class IndexEntry(Convert, Represent, nodes.Element):
 
         def _index_unit(term, sub1, sub2):
             if etype in ('see', 'seealso'):
-                link = self.type2link(etype)
+                link = self._type2link(etype)
             else:
-                link = self.type2link('uri')
+                link = self._type2link('uri')
 
-            emphasis = self.main2code(main)
+            emphasis = self._main2code(main)
 
             if not sub1:
                 sub1 = self.textclass('')
@@ -507,7 +507,7 @@ class IndexRack(Convert, Character, nodes.Element):
             # if it's see/seealso, reset file_name for no uri. see Convert.
             if i_lnk == 3:
                 # Change the code to string.
-                r_main = self.code2main(i_em)
+                r_main = self._code2main(i_em)
 
                 # uri
                 try:

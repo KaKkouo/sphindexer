@@ -4,7 +4,7 @@ from docutils.parsers.rst.states import Inliner
 from sphinx.application import Sphinx
 from sphinx.errors import SphinxError
 
-from src.std import Glossary
+from src.glossary import Glossary
 
 #-------------------------------------------------------------------
 
