@@ -24,19 +24,6 @@ from sphinx.util.docutils import SphinxDirective
 from sphinx.util.nodes import clean_astext, make_id, make_refnode
 from sphinx.util.typing import OptionSpec, RoleFunction
 
-if TYPE_CHECKING:
-    from sphinx.application import Sphinx
-    from sphinx.builders import Builder
-    from sphinx.environment import BuildEnvironment
-
-logger = logging.getLogger(__name__)
-
-
-# RE for option descriptions
-option_desc_re = re.compile(r'((?:/|--|-|\+)?[^\s=]+)(=?\s*.*)')
-# RE for grammar tokens
-token_re = re.compile(r'`((~?\w*:)?\w+)`', re.U)
-
 
 def split_term_classifiers(line: str) -> List[Optional[str]]:
     # split line into a term and classifiers. if no classifier, None is used..
