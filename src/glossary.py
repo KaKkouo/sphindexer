@@ -24,6 +24,8 @@ from sphinx.util.docutils import SphinxDirective
 from sphinx.util.nodes import clean_astext, make_id, make_refnode
 from sphinx.util.typing import OptionSpec, RoleFunction
 
+from sphinx.domains.std import StandardDomain
+
 
 def split_term_classifiers(line: str) -> List[Optional[str]]:
     # split line into a term and classifiers. if no classifier, None is used..
